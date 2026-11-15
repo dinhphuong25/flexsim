@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Environment files
+.env*.local
+
+# Database
+.dev-pgdata/
+*.sqlite
+*.sqlite-journal
+
+# Logs & Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vitest/
+coverage/
+
+# OS Files
+.DS_Store
+Thumbs.db

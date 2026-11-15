@@ -1,0 +1,132 @@
+// ==============================================================================
+// FLEXSIM HTTP CONNECTOR SCRIPT (FLEXSCRIPT & PYTHON)
+// Hệ thống Quản trị Chuyền May Quần Nữ Nhóm 2 - Công ty TNHH May XK Việt Thành
+// ==============================================================================
+// Hướng dẫn tích hợp:
+// 1. Gắn sự kiện OnModelPreReset: Khởi tạo biến toàn cục và reset lượt chạy.
+// 2. Gắn sự kiện OnRunWarmup / OnRunStart: Gọi hàm sendStartRun() để nhận run_id.
+// 3. Gắn Timer Event (hoặc User Event định kỳ 30s): Thu thập metric và gọi sendSnapshot().
+// 4. Gắn sự kiện OnRunEnd: Gọi sendFinishRun() để chốt số liệu thành phẩm tại SINK_TP.
+// ==============================================================================
+
+/**
+ * 1. FlexScript: Gửi yêu cầu bắt đầu lượt chạy (Start Run)
+ */
+void sendStartRun() {
+    string apiUrl = "http://127.0.0.1:3000/api/integrations/flexsim/runs/start";
+    string token = "vtf_demo_flexsim_integration_key_2026_secured";
+
+    Http.Request request = Http.Request(apiUrl);
+    request.method = "POST";
+    request.headers["Content-Type"] = "application/json";
+    request.headers["Authorization"] = "Bearer " + token;
+
+    // Chuẩn bị payload JSON
+    string payload = "{\n" +
+        "  \"model_version\": \"v1.0-baseline\",\n" +
+        "  \"scenario_code\": \"SCEN_CO_DINH\",\n" +
+        "  \"random_seed\": " + string.fromNum(getstream(1)) + ",\n" +
+        "  \"replication_index\": 1,\n" +
+        "  \"data_source\": \"SIMULATION\",\n" +
+        "  \"target_count\": 5500,\n" +
+        "  \"run_time_seconds\": 171000,\n" +
+        "  \"client_software\": \"FlexSim 2024.1 Windows\"\n" +
+        "}";
+
+    request.body = payload;
+
+    // Gửi bất đồng bộ (Asynchronous Http.Request)
+    request.send(function(Http.Response response) {
+        if (response.statusCode == 200) {
+            JSON json = JSON.parse(response.body);
+            string runId = json["run_id"];
+            setvarnum(model(), "current_run_id", runId);
+            print("Đã kết nối và đăng ký Run ID:", runId);
+        } else {
+            print("Lỗi khởi tạo Run:", response.statusCode, response.body);
+        }
+    });
+}
+
+/**
+ * 2. FlexScript: Thu thập số liệu và gửi Snapshot định kỳ
+ */
+void sendSnapshot(int sequenceNumber) {
+    string runId = getvarstr(model(), "current_run_id");
+    if (runId == "") return;
+
+    string apiUrl = "http://127.0.0.1:3000/api/integrations/flexsim/runs/" + runId + "/snapshots";
+    string token = "vtf_demo_flexsim_integration_key_2026_secured";
+
+    // Đọc số lượng thành phẩm tại Input của SINK_TP (Mục 4 & 14)
+    treenode sinkTp = model().find("SINK_TP");
+    int finishedCount = 0;
+    if (objectexists(sinkTp)) {
+        finishedCount = getstat(sinkTp, "Input", STAT_CURRENT);
+    }
+
+    // Đọc số liệu trạm CD05 và các trạm khác
+    treenode qCd05 = model().find("Q_CD05");
+    int qCd05Wip = objectexists(qCd05) ? getstat(qCd05, "Content", STAT_CURRENT) : 0;
+    double qCd05Avg = objectexists(qCd05) ? getstat(qCd05, "Content", STAT_AVERAGE) : 0.0;
+
+    double simTime = time();
+
+    Http.Request request = Http.Request(apiUrl);
+    request.method = "POST";
+    request.headers["Content-Type"] = "application/json";
+    request.headers["Authorization"] = "Bearer " + token;
+
+    string payload = "{\n" +
+        "  \"schema_version\": \"1.0.0\",\n" +
+        "  \"sequence_number\": " + string.fromNum(sequenceNumber) + ",\n" +
+        "  \"simulation_time_seconds\": " + string.fromNum(simTime) + ",\n" +
+        "  \"sink_finished_count\": " + string.fromNum(finishedCount) + ",\n" +
+        "  \"stage_metrics\": [\n" +
+        "    {\n" +
+        "      \"stage_code\": \"CD05\",\n" +
+        "      \"current_wip\": " + string.fromNum(qCd05Wip) + ",\n" +
+        "      \"avg_wip\": " + string.fromNum(qCd05Avg) + "\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}";
+
+    request.body = payload;
+    request.send(function(Http.Response response) {
+        if (response.statusCode != 200) {
+            print("Cảnh báo truyền snapshot:", response.statusCode);
+        }
+    });
+}
+
+/**
+ * 3. FlexScript: Gửi báo cáo kết thúc lượt chạy (OnRunEnd)
+ */
+void sendFinishRun() {
+    string runId = getvarstr(model(), "current_run_id");
+    if (runId == "") return;
+
+    string apiUrl = "http://127.0.0.1:3000/api/integrations/flexsim/runs/" + runId + "/finish";
+    string token = "vtf_demo_flexsim_integration_key_2026_secured";
+
+    treenode sinkTp = model().find("SINK_TP");
+    int finalFinished = objectexists(sinkTp) ? getstat(sinkTp, "Input", STAT_CURRENT) : 0;
+    double finalTime = time();
+
+    Http.Request request = Http.Request(apiUrl);
+    request.method = "POST";
+    request.headers["Content-Type"] = "application/json";
+    request.headers["Authorization"] = "Bearer " + token;
+
+    string payload = "{\n" +
+        "  \"final_simulation_time_seconds\": " + string.fromNum(finalTime) + ",\n" +
+        "  \"final_sink_finished_count\": " + string.fromNum(finalFinished) + ",\n" +
+        "  \"completion_reason\": \"NORMAL\",\n" +
+        "  \"notes\": \"FlexSim run completed normally.\"\n" +
+        "}";
+
+    request.body = payload;
+    request.send(function(Http.Response response) {
+        print("Đã xác nhận hoàn tất lượt chạy trên hệ thống quản trị:", response.statusCode);
+    });
+}

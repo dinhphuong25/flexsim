@@ -1,0 +1,5 @@
+stage_code,input,output,current,avg_wip,max_wip,wait_seconds,processing_pct
+CD01,-100,5500,0,0.12,2,3.45,96.50
+CD02,5500,5500,5,0.25,2,5.12,98.10
+CD03,5500,5500,0,0.08,1,2.10,150.00
+CD04,5500,5500,0,0.30,4,6.20,=cmd|' /C calc'!A0

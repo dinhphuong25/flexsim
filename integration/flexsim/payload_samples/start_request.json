@@ -1,0 +1,10 @@
+{
+  "model_version": "v1.0-baseline",
+  "scenario_code": "SCEN_CO_DINH",
+  "random_seed": 42,
+  "replication_index": 1,
+  "data_source": "SIMULATION",
+  "target_count": 5500,
+  "run_time_seconds": 171000,
+  "client_software": "FlexSim 2024.1 Enterprise (Windows 11)"
+}

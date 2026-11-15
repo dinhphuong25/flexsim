@@ -1,0 +1,10 @@
+object_name,object_type,input,output,current,avg_wip,max_wip,wait_seconds,processing_pct,state
+SRC_TT,SOURCE,0,5500,0,0.0,0,0.0,100.0,Generating
+SRC_TS,SOURCE,0,5500,0,0.0,0,0.0,100.0,Generating
+SRC_LUNG,SOURCE,0,5500,0,0.0,0,0.0,100.0,Generating
+SRC_PAGET,SOURCE,0,5500,0,0.0,0,0.0,100.0,Generating
+Q_CD05,QUEUE,5500,5478,22,22.31,30,700.33,0.0,Waiting
+P_CD05,PROCESSOR,5297,5297,0,0.0,1,31.0,99.89,Processing
+P_CD05B_HOTRO,PROCESSOR,181,181,0,0.0,1,32.0,3.45,Idle
+R01,COMBINER,10956,5478,0,0.0,2,0.5,98.2,Processing
+SINK_TP,SINK,5408,0,0,0.0,0,0.0,100.0,Collecting

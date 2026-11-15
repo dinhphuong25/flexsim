@@ -1,0 +1,561 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+enum BranchType {
+  FRONT_BODY
+  BACK_BODY
+  POST_R01
+  WAISTBAND
+  POST_R02
+  PAGET
+  POST_R03
+}
+
+enum ObjectType {
+  SOURCE
+  QUEUE
+  PROCESSOR
+  COMBINER
+  SINK
+  OPERATOR
+  TRANSPORTER
+  OTHER
+}
+
+enum ConnectionType {
+  FLOW
+  SUPPORT
+  RESOURCE
+}
+
+enum RunStatus {
+  IN_PROGRESS
+  COMPLETED
+  STOPPED_EARLY
+  ERROR
+  RESET
+}
+
+enum DataSource {
+  SIMULATION
+  ACTUAL
+  PLAN
+  MEASURED
+  ASSUMPTION
+  TEST_SIMULATION
+}
+
+enum PlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum BatchStatus {
+  ACCEPTED
+  DUPLICATE
+  REJECTED
+  ERROR
+}
+
+enum AuditConclusion {
+  CON_TON
+  HET_TON_TRONG_PHAM_VI
+  CHUA_DU_DU_LIEU
+  HET_TON_TOAN_CHUYEN
+}
+
+enum AuditItemStatus {
+  EMPTY
+  HAS_WIP
+  MISSING_DATA
+}
+
+enum ImportStatus {
+  PENDING
+  PREVIEWED
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  role         Role      @default(VIEWER)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  scenarios          Scenario[]
+  simulationRuns     SimulationRun[]
+  importJobs         ImportJob[]
+  inventoryAudits    InventoryAudit[]
+  auditLogs          AuditLog[]
+  integrationClients IntegrationClient[]
+
+  @@index([role])
+}
+
+model ProductionLine {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  name           String
+  company        String   @default("Công ty TNHH May Xuất Khẩu Việt Thành")
+  targetOutput   Int      @default(5500)
+  runTimeSeconds Float    @default(171000)
+  plannedWorkers Int      @default(34)
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  modelVersions   ModelVersion[]
+  stages          Stage[]
+  workers         WorkerResource[]
+  productionPlans ProductionPlan[]
+  scenarios       Scenario[]
+}
+
+model ModelVersion {
+  id          String   @id @default(cuid())
+  lineId      String
+  versionCode String
+  description String?
+  isCurrent   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  line             ProductionLine    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  modelObjects     ModelObject[]
+  modelConnections ModelConnection[]
+  scenarios        Scenario[]
+  simulationRuns   SimulationRun[]
+
+  @@unique([lineId, versionCode])
+  @@index([lineId])
+}
+
+model Stage {
+  id                   String     @id @default(cuid())
+  lineId               String
+  stageCode            String
+  name                 String
+  branch               BranchType
+  sequenceOrder        Int
+  parallelStationCount Int        @default(1)
+  standardProcessTime  Float?
+  notes                String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  line         ProductionLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  modelObjects ModelObject[]
+  stageMetrics StageMetric[]
+
+  @@unique([lineId, stageCode])
+  @@index([lineId, sequenceOrder])
+}
+
+model ModelObject {
+  id                 String      @id @default(cuid())
+  modelVersionId     String
+  stageId            String?
+  flexsimName        String
+  objectType         ObjectType
+  branch             BranchType?
+  isInventoryAudited Boolean     @default(true)
+  isActive           Boolean     @default(true)
+  capacity           Int?
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  modelVersion         ModelVersion          @relation(fields: [modelVersionId], references: [id], onDelete: Cascade)
+  stage                Stage?                @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  outgoingConnections  ModelConnection[]     @relation("FromObject")
+  incomingConnections  ModelConnection[]     @relation("ToObject")
+  metrics              ObjectMetric[]
+  inventoryAuditItems  InventoryAuditItem[]
+
+  @@unique([modelVersionId, flexsimName])
+  @@index([modelVersionId, objectType])
+}
+
+model ModelConnection {
+  id             String         @id @default(cuid())
+  modelVersionId String
+  fromObjectId   String
+  toObjectId     String
+  connectionType ConnectionType @default(FLOW)
+  createdAt      DateTime       @default(now())
+
+  modelVersion ModelVersion @relation(fields: [modelVersionId], references: [id], onDelete: Cascade)
+  fromObject   ModelObject  @relation("FromObject", fields: [fromObjectId], references: [id], onDelete: Cascade)
+  toObject     ModelObject  @relation("ToObject", fields: [toObjectId], references: [id], onDelete: Cascade)
+
+  @@index([modelVersionId])
+  @@index([fromObjectId])
+  @@index([toObjectId])
+}
+
+model WorkerResource {
+  id               String   @id @default(cuid())
+  lineId           String
+  workerCode       String
+  name             String
+  isFloating       Boolean  @default(false)
+  primaryStation   String?
+  secondaryStation String?
+  transferRule     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  line        ProductionLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  assignments Assignment[]
+
+  @@unique([lineId, workerCode])
+  @@index([lineId, isFloating])
+}
+
+model Assignment {
+  id          String    @id @default(cuid())
+  workerId    String
+  stationName String
+  shiftName   String?
+  assignedAt  DateTime  @default(now())
+  releasedAt  DateTime?
+  notes       String?
+
+  worker WorkerResource @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+}
+
+model Scenario {
+  id             String   @id @default(cuid())
+  lineId         String
+  modelVersionId String
+  code           String
+  name           String
+  description    String?
+  isBaseline     Boolean  @default(false)
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  line           ProductionLine         @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  modelVersion   ModelVersion           @relation(fields: [modelVersionId], references: [id], onDelete: Cascade)
+  createdBy      User?                  @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  configuration  ScenarioConfiguration?
+  simulationRuns SimulationRun[]
+
+  @@unique([lineId, code])
+  @@index([lineId])
+  @@index([modelVersionId])
+}
+
+model ScenarioConfiguration {
+  id                          String   @id @default(cuid())
+  scenarioId                  String   @unique
+  processTimeFactor           Float    @default(1.0)
+  processTimeDistribution     String?
+  transferThreshold           Float?
+  queueCapacitiesJson         String?
+  materialReleaseScheduleJson String?
+  assumptionsBasis            String?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  scenario Scenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+}
+
+model SimulationRun {
+  id                String     @id @default(cuid())
+  scenarioId        String
+  modelVersionId    String
+  runCode           String
+  replicationIndex  Int?
+  randomSeed        BigInt?
+  runTimeSeconds    Float      @default(171000)
+  warmupSeconds     Float?
+  status            RunStatus  @default(IN_PROGRESS)
+  dataSource        DataSource @default(SIMULATION)
+  sourceDescription String?
+  finishedCount     Int?
+  targetCount       Int        @default(5500)
+  isLineCleared     Boolean?
+  startedAt         DateTime   @default(now())
+  finishedAt        DateTime?
+  createdById       String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  scenario          Scenario           @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  modelVersion      ModelVersion       @relation(fields: [modelVersionId], references: [id], onDelete: Cascade)
+  createdBy         User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  objectMetrics     ObjectMetric[]
+  stageMetrics      StageMetric[]
+  timeSeriesMetrics TimeSeriesMetric[]
+  inventoryAudits   InventoryAudit[]
+  ingestionBatches  IngestionBatch[]
+
+  @@unique([scenarioId, runCode])
+  @@index([scenarioId, status])
+  @@index([modelVersionId])
+  @@index([dataSource])
+}
+
+model ObjectMetric {
+  id                    String   @id @default(cuid())
+  runId                 String
+  modelObjectId         String
+  inputCount            Int?
+  outputCount           Int?
+  currentContent        Int?
+  avgContent            Float?
+  maxContent            Int?
+  avgStaytime           Float?
+  processingPct         Float?
+  idlePct               Float?
+  blockedPct            Float?
+  stateAtSample         String?
+  simulationTimeSeconds Float
+  capturedAt            DateTime @default(now())
+
+  run         SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  modelObject ModelObject   @relation(fields: [modelObjectId], references: [id], onDelete: Cascade)
+
+  @@index([runId, modelObjectId])
+  @@index([runId, simulationTimeSeconds])
+}
+
+model StageMetric {
+  id                    String   @id @default(cuid())
+  runId                 String
+  stageId               String
+  inputCount            Int?
+  outputCount           Int?
+  currentWip            Int?
+  avgWip                Float?
+  maxWip                Int?
+  avgStaytime           Float?
+  processingPct         Float?
+  bottleneckScore       Float?
+  simulationTimeSeconds Float
+  capturedAt            DateTime @default(now())
+
+  run   SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  stage Stage         @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([runId, stageId])
+  @@index([runId, simulationTimeSeconds])
+}
+
+model TimeSeriesMetric {
+  id                    String   @id @default(cuid())
+  runId                 String
+  targetType            String
+  targetId              String
+  metricName            String
+  metricValue           Float
+  simulationTimeSeconds Float
+  capturedAt            DateTime @default(now())
+
+  run SimulationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, simulationTimeSeconds])
+  @@index([targetType, targetId])
+}
+
+model ProductionPlan {
+  id                  String     @id @default(cuid())
+  lineId              String
+  planCode            String
+  targetOutput        Int        @default(5500)
+  plannedRunTime      Float      @default(171000)
+  totalPlannedWorkers Int        @default(34)
+  fixedWorkers        Int        @default(30)
+  floatingWorkers     Int        @default(4)
+  startDate           DateTime?
+  endDate             DateTime?
+  status              PlanStatus @default(DRAFT)
+  notes               String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  line             ProductionLine    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  materialReleases MaterialRelease[]
+
+  @@unique([lineId, planCode])
+  @@index([lineId, status])
+}
+
+model MaterialRelease {
+  id                   String     @id @default(cuid())
+  planId               String
+  branch               BranchType
+  sourceName           String
+  plannedQuantity      Int
+  generatedQuantity    Int?
+  releasedQuantity     Int?
+  heldQuantity         Int?
+  completedQuantity    Int?
+  lastBatchReleaseTime Float?
+  isReleaseCompleted   Boolean    @default(false)
+  releaseScheduleJson  String?
+  notes                String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  plan ProductionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId, branch])
+}
+
+model IntegrationClient {
+  id              String    @id @default(cuid())
+  clientName      String
+  tokenHash       String    @unique
+  tokenPrefix     String
+  permissionsJson String    @default("{\"allLines\":true}")
+  rateLimitPerMin Int       @default(60)
+  isActive        Boolean   @default(true)
+  lastUsedAt      DateTime?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  createdBy        User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  ingestionBatches IngestionBatch[]
+
+  @@index([tokenPrefix])
+  @@index([isActive])
+}
+
+model IngestionBatch {
+  id              String      @id @default(cuid())
+  clientId        String
+  runId           String
+  sequenceNumber  BigInt
+  clientTimestamp DateTime?
+  receivedAt      DateTime    @default(now())
+  recordCount     Int         @default(0)
+  status          BatchStatus @default(ACCEPTED)
+  errorMessage    String?
+
+  client IntegrationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  run    SimulationRun     @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, sequenceNumber])
+  @@index([clientId])
+  @@index([receivedAt])
+}
+
+model InventoryAudit {
+  id                        String          @id @default(cuid())
+  runId                     String
+  auditTimestamp            DateTime        @default(now())
+  simulationTimeSeconds     Float
+  conclusion                AuditConclusion
+  totalScopeItems           Int
+  totalRemainingWip         Int
+  isMaterialReleaseComplete Boolean         @default(false)
+  isTransportCleared        Boolean         @default(false)
+  inspectedScopeSummary     String?
+  notes                     String?
+  auditedById               String?
+  createdAt                 DateTime        @default(now())
+
+  run       SimulationRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+  auditedBy User?                @relation(fields: [auditedById], references: [id], onDelete: SetNull)
+  items     InventoryAuditItem[]
+
+  @@index([runId])
+  @@index([conclusion])
+}
+
+model InventoryAuditItem {
+  id             String          @id @default(cuid())
+  auditId        String
+  modelObjectId  String
+  objectName     String
+  objectType     String
+  branch         String?
+  currentContent Int?
+  isAudited      Boolean         @default(true)
+  status         AuditItemStatus @default(EMPTY)
+  notes          String?
+
+  audit       InventoryAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  modelObject ModelObject    @relation(fields: [modelObjectId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@index([status])
+}
+
+model ImportJob {
+  id           String       @id @default(cuid())
+  fileName     String
+  fileType     String
+  fileSize     Int
+  targetTable  String
+  recordCount  Int          @default(0)
+  successCount Int          @default(0)
+  errorCount   Int          @default(0)
+  status       ImportStatus @default(PENDING)
+  importedById String?
+  createdAt    DateTime     @default(now())
+
+  importedBy User?         @relation(fields: [importedById], references: [id], onDelete: SetNull)
+  errors     ImportError[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ImportError {
+  id           String   @id @default(cuid())
+  importJobId  String
+  rowNumber    Int
+  columnName   String?
+  rawValue     String?
+  errorMessage String
+  createdAt    DateTime @default(now())
+
+  importJob ImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+
+  @@index([importJobId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String?
+  detailsJson String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
