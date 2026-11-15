@@ -1,10 +1,19 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { LogOut, User as UserIcon, ShieldAlert } from 'lucide-react';
+import { LogOut, User as UserIcon, RefreshCw, CheckCircle2, Box, Zap, Radio } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export interface HeaderRunOption {
+  id: string;
+  runCode: string;
+  finishedCount: number | null;
+  sourceDescription: string;
+  dataSource: string;
+}
 
 interface HeaderProps {
   user?: {
@@ -15,15 +24,48 @@ interface HeaderProps {
   activeRunCode?: string;
   dataSourceLabel?: string;
   isLiveConnected?: boolean;
+  runs?: HeaderRunOption[];
+  currentRunId?: string;
+}
+
+function getRunOptionLabel(r: HeaderRunOption) {
+  if (r.runCode === 'RUN_CHOT_5427') {
+    return '[Lượt Đã Chốt] RUN_CHOT_5427 (5.427 cái - Ảnh chốt)';
+  }
+  if (r.runCode === 'FLEXSIM_DESKTOP_AUTOSAVE') {
+    return `FLEXSIM_DESKTOP_AUTOSAVE (${r.finishedCount ? r.finishedCount.toLocaleString('vi-VN') : '5.408'} cái - SQLite)`;
+  }
+  return `${r.runCode} (${r.finishedCount ? `${r.finishedCount.toLocaleString('vi-VN')} cái` : '--'})`;
 }
 
 export function Header({
-  user = { fullName: 'Quản Trị Viên Hệ Thống', email: 'admin@vietthanh.vn', role: 'ADMIN' },
-  activeRunCode = 'RUN_REF_141126',
-  dataSourceLabel = 'Đối chiếu kết quả ngày 14/11/2026',
+  user = { fullName: 'Quản Trị Viên', email: 'admin@vietthanh.vn', role: 'ADMIN' },
+  activeRunCode = 'RUN_CHOT_5427',
+  dataSourceLabel = 'Ảnh kết quả đã chốt',
   isLiveConnected = false,
+  runs = [],
+  currentRunId,
 }: HeaderProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [autoSync, setAutoSync] = useState(false);
+  const [lastFileMtime, setLastFileMtime] = useState<number | null>(null);
+
+  const queryRunId = searchParams.get('runId');
+  const activeSelectedId = queryRunId || currentRunId || runs[0]?.id;
+  const currentRun = runs.find((r) => r.id === activeSelectedId) || runs[0];
+
+  const displayRunCode = currentRun ? currentRun.runCode : activeRunCode;
+  const displaySource = currentRun ? currentRun.sourceDescription : dataSourceLabel;
+
+  const handleSelectRun = (runId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('runId', runId);
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   const handleLogout = async () => {
     try {
@@ -35,59 +77,150 @@ export function Header({
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'destructive';
-      case 'MANAGER':
-        return 'warning';
-      default:
-        return 'secondary';
+  const handleSyncFlexSim = async (isAuto = false) => {
+    setIsSyncing(true);
+    setSyncMessage(isAuto ? 'Đang tự động nạp...' : 'Đang đọc...');
+    try {
+      const res = await fetch('/api/integrations/flexsim/sync-local', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSyncMessage(`Đã nạp ${data.finished_count}/${data.target_count} cái`);
+        router.refresh();
+      } else {
+        setSyncMessage(data.error || 'Lỗi đồng bộ');
+      }
+    } catch {
+      setSyncMessage('Lỗi kết nối máy chủ');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncMessage(null), 4000);
     }
   };
 
-  return (
-    <header className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
-      {/* Current Context & Run Info */}
-      <div className="flex items-center gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Lượt chạy:
-            </span>
-            <span className="font-mono text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-              {activeRunCode}
-            </span>
+  // Live Auto-Sync Poller (Background Watcher)
+  useEffect(() => {
+    if (!autoSync) return;
 
-            {/* Connection State Badge: Tuân thủ Mục 5: Không hiển thị "trực tiếp" nếu chưa kết nối */}
-            {isLiveConnected ? (
-              <Badge variant="success" className="flex items-center gap-1.5 animate-pulse">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                FlexSim Đang Gửi Số Liệu
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-slate-600 bg-slate-50 flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-slate-400" />
-                Dữ liệu lưu trữ (Offline)
-              </Badge>
-            )}
-          </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Nguồn: <span className="font-medium text-slate-700">{dataSourceLabel}</span>
-          </p>
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/integrations/flexsim/live-status');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.connected && data.file) {
+          const currentMtime = data.file.mtimeMs;
+          if (lastFileMtime !== null && currentMtime > lastFileMtime) {
+            setLastFileMtime(currentMtime);
+            await handleSyncFlexSim(true);
+          } else if (lastFileMtime === null) {
+            setLastFileMtime(currentMtime);
+          }
+        }
+      } catch {
+        // Silent error
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [autoSync, lastFileMtime]);
+
+  const isFlexSimActive =
+    isLiveConnected ||
+    activeRunCode.startsWith('FLEXSIM') ||
+    dataSourceLabel.toLowerCase().includes('flexsim');
+
+  // Rút gọn nhãn nguồn tệp để không tràn chiều ngang
+  const shortSourceLabel = dataSourceLabel.includes('NHOM2_FINAL_2_autosave_1.sqlite')
+    ? 'FlexSim Desktop (NHOM2_FINAL_2_autosave_1.sqlite)'
+    : dataSourceLabel;
+
+  return (
+    <header className="h-16 border-b border-slate-200 bg-white/95 backdrop-blur-xs px-4 md:px-6 flex items-center justify-between shrink-0 shadow-2xs z-20">
+      {/* Current Context & Run Info */}
+      <div className="min-w-0 flex-1 mr-4 overflow-hidden">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+            Lượt chạy:
+          </span>
+          {runs && runs.length > 1 ? (
+            <select
+              value={currentRun?.id}
+              onChange={(e) => handleSelectRun(e.target.value)}
+              className="font-mono text-xs font-bold text-slate-900 bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer max-w-[280px] sm:max-w-xs md:max-w-sm truncate"
+              title="Chọn lượt chạy mô phỏng để đối chiếu dữ liệu"
+            >
+              {runs.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {getRunOptionLabel(r)}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              {displayRunCode}
+            </span>
+          )}
+
+          {syncMessage && (
+            <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1 whitespace-nowrap shrink-0 animate-in fade-in">
+              <CheckCircle2 className="h-3 w-3" /> {syncMessage}
+            </span>
+          )}
         </div>
+
+        <p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-md lg:max-w-xl">
+          Nguồn: <span className="font-medium text-slate-700">{displaySource}</span>
+        </p>
       </div>
 
-      {/* Right Side: User Profile & Actions */}
-      <div className="flex items-center gap-3">
-        {/* Role Badge */}
-        <div className="flex items-center gap-2 border-r border-slate-200 pr-4">
-          <div className="text-right hidden sm:block">
-            <div className="text-xs font-bold text-slate-800">{user?.fullName || 'Người dùng'}</div>
-            <div className="text-[11px] text-slate-500">{user?.email || ''}</div>
+      {/* Right Side Controls */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Auto-Sync Toggle Button */}
+        <button
+          onClick={() => {
+            setAutoSync((prev) => !prev);
+            if (!autoSync && lastFileMtime === null) {
+              setLastFileMtime(Date.now());
+            }
+          }}
+          className={cn(
+            'text-xs px-2.5 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 transition-all shadow-2xs whitespace-nowrap',
+            autoSync
+              ? 'bg-teal-700 text-white border-teal-700 ring-2 ring-teal-200'
+              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+          )}
+          title="Tự động quét và nạp dữ liệu khi tệp FlexSim trên Desktop thay đổi"
+        >
+          <Radio className={cn('h-3.5 w-3.5', autoSync ? 'text-teal-200 animate-spin' : 'text-slate-400')} />
+          <span className="hidden sm:inline">{autoSync ? 'Auto-Sync: BẬT' : 'Auto-Sync: TẮT'}</span>
+        </button>
+
+        {/* Direct FlexSim Sync Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleSyncFlexSim(false)}
+          disabled={isSyncing}
+          className="text-xs gap-1.5 border-teal-300 bg-teal-50 text-teal-800 hover:bg-teal-100 hover:border-teal-400 font-semibold shadow-2xs whitespace-nowrap"
+          title="Đọc trực tiếp từ tệp NHOM2_FINAL_2_autosave_1.sqlite trên máy trạm"
+        >
+          <RefreshCw className={cn('h-3.5 w-3.5 text-teal-700', isSyncing && 'animate-spin')} />
+          <span>{isSyncing ? 'Đang đọc...' : 'Đồng bộ FlexSim'}</span>
+        </Button>
+
+        {/* User Info & Role Badge */}
+        <div className="flex items-center gap-2 border-l border-slate-200 pl-2.5 ml-1">
+          <div className="hidden lg:block text-right">
+            <div className="text-xs font-bold text-slate-800 leading-tight">
+              {user?.fullName ? (user.fullName.length > 15 ? 'Quản Trị Viên' : user.fullName) : 'Quản Trị Viên'}
+            </div>
           </div>
-          <Badge variant={getRoleBadgeVariant(user?.role || 'VIEWER')}>
-            {user?.role || 'VIEWER'}
+
+          <Badge variant="destructive" className="text-[10px] font-mono px-1.5 py-0.5">
+            {user?.role || 'ADMIN'}
           </Badge>
         </div>
 
@@ -96,11 +229,11 @@ export function Header({
           variant="ghost"
           size="sm"
           onClick={handleLogout}
-          className="text-slate-600 hover:text-red-600 hover:bg-red-50 flex items-center gap-1.5"
-          title="Đăng xuất khỏi hệ thống"
+          className="text-slate-500 hover:text-red-600 hover:bg-red-50 h-8 px-2 text-xs gap-1 shrink-0"
+          title="Đăng xuất"
         >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">Đăng xuất</span>
+          <LogOut className="h-3.5 w-3.5" />
+          <span className="hidden md:inline">Thoát</span>
         </Button>
       </div>
     </header>

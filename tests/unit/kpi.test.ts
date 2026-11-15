@@ -3,60 +3,90 @@ import {
   calculateCompletionRate,
   calculateRemainingCount,
   calculateProductionKpis,
+  evaluateProductionOutput,
   formatMetricNumber,
   formatPercentage,
   formatSimulationTime,
   evaluateBottleneck,
+  CURRENT_PRODUCTION_TARGET,
 } from '@/lib/kpi';
 
-describe('Quy tắc KPI và tính toán sản xuất (Mục 6 & 20)', () => {
-  it('Tính chính xác tỷ lệ hoàn thành 5408 / 5500', () => {
-    const rate = calculateCompletionRate(5408, 5500);
-    // 5408 / 5500 * 100 = 98.32727... -> làm tròn 98.33%
-    expect(rate).toBe(98.33);
+describe('Quy tắc KPI và Tiêu chí Hoàn thành Sản lượng (Mục tiêu 5.500 sản phẩm / 171.000s)', () => {
+  it('Kiểm thử bắt buộc 1: 5.100 sản phẩm -> chưa đạt mục tiêu, còn thiếu 400', () => {
+    const kpi = evaluateProductionOutput(5100);
+    expect(kpi.isCompleted).toBe(false);
+    expect(kpi.statusLabel).toBe('Chưa đạt mục tiêu');
+    expect(kpi.remaining).toBe(400);
+    expect(kpi.remainingCount).toBe(400);
+    expect(kpi.excess).toBe(0);
+    expect(kpi.aboveThreshold).toBe(0);
+    expect(kpi.completionRate).toBe(92.73); // 5100 / 5500 * 100 = 92.727... -> 92.73%
   });
 
-  it('Tính chính xác số lượng còn thiếu: max(5500 - 5408, 0) = 92', () => {
-    const remaining = calculateRemainingCount(5408, 5500);
-    expect(remaining).toBe(92);
+  it('Kiểm thử bắt buộc 2: 5.408 sản phẩm (Lượt chạy FlexSim thực tế) -> chưa đạt mục tiêu, còn thiếu 92, hoàn thành 98,33%', () => {
+    const kpi = evaluateProductionOutput(5408);
+    expect(kpi.isCompleted).toBe(false);
+    expect(kpi.statusLabel).toBe('Chưa đạt mục tiêu');
+    expect(kpi.remaining).toBe(92);
+    expect(kpi.remainingCount).toBe(92);
+    expect(kpi.excess).toBe(0);
+    expect(kpi.aboveThreshold).toBe(0);
+    expect(kpi.completionRate).toBe(98.33); // 5408 / 5500 * 100 = 98.327... -> 98.33%
+    expect(kpi.requirementLabel).toBe('5.500 sản phẩm');
   });
 
-  it('Khi vượt kế hoạch, tỷ lệ phần trăm phải phản ánh đúng trên 100% và số còn thiếu bằng 0', () => {
-    const rate = calculateCompletionRate(5600, 5500);
-    // 5600 / 5500 * 100 = 101.818... -> 101.82%
-    expect(rate).toBe(101.82);
-
-    const remaining = calculateRemainingCount(5600, 5500);
-    expect(remaining).toBe(0);
+  it('Kiểm thử bắt buộc 3: 5.499 sản phẩm -> chưa đạt mục tiêu, còn thiếu 1', () => {
+    const kpi = evaluateProductionOutput(5499);
+    expect(kpi.isCompleted).toBe(false);
+    expect(kpi.statusLabel).toBe('Chưa đạt mục tiêu');
+    expect(kpi.remaining).toBe(1);
+    expect(kpi.remainingCount).toBe(1);
+    expect(kpi.excess).toBe(0);
+    expect(kpi.completionRate).toBe(99.98); // 5499 / 5500 * 100 = 99.9818... -> 99.98%
   });
 
-  it('Nguyên tắc quan trọng: Null KHÔNG PHẢI là 0', () => {
-    expect(calculateCompletionRate(null, 5500)).toBeNull();
-    expect(calculateCompletionRate(undefined, 5500)).toBeNull();
-    expect(calculateRemainingCount(null, 5500)).toBeNull();
-    expect(calculateRemainingCount(undefined, 5500)).toBeNull();
-
-    // 0 là giá trị đo thực tế (chưa sản xuất được cái nào), còn null là chưa có dữ liệu đo
-    expect(calculateCompletionRate(0, 5500)).toBe(0);
-    expect(calculateRemainingCount(0, 5500)).toBe(5500);
+  it('Kiểm thử bắt buộc 4: 5.500 sản phẩm -> đúng 5.500 là HOÀN THÀNH, thiếu 0', () => {
+    const kpi = evaluateProductionOutput(5500);
+    expect(kpi.isCompleted).toBe(true);
+    expect(kpi.statusLabel).toBe('Hoàn thành');
+    expect(kpi.remaining).toBe(0);
+    expect(kpi.remainingCount).toBe(0);
+    expect(kpi.excess).toBe(0);
+    expect(kpi.aboveThreshold).toBe(0);
+    expect(kpi.completionRate).toBe(100.0);
   });
 
-  it('Tính toán cụm KPI tổng thể với đầy đủ thuộc tính', () => {
-    const kpis = calculateProductionKpis(5408, 5500);
-    expect(kpis.target).toBe(5500);
-    expect(kpis.finished).toBe(5408);
-    expect(kpis.completionRatePct).toBe(98.33);
-    expect(kpis.remainingCount).toBe(92);
-    expect(kpis.isOverTarget).toBe(false);
-    expect(kpis.statusLabel).toBe('Gần đạt kế hoạch');
+  it('Kiểm thử bắt buộc 5: 5.501 sản phẩm -> hoàn thành, vượt 1', () => {
+    const kpi = evaluateProductionOutput(5501);
+    expect(kpi.isCompleted).toBe(true);
+    expect(kpi.statusLabel).toBe('Hoàn thành');
+    expect(kpi.remaining).toBe(0);
+    expect(kpi.remainingCount).toBe(0);
+    expect(kpi.excess).toBe(1);
+    expect(kpi.aboveThreshold).toBe(1);
+    expect(kpi.completionRate).toBe(100.02); // 5501 / 5500 * 100 = 100.018... -> 100.02%
   });
 
-  it('Định dạng số theo chuẩn tiếng Việt, không tự ý biến null thành 0', () => {
+  it('Kiểm thử bắt buộc 6: Null / Undefined -> hiển thị "Chưa có dữ liệu", KHÔNG chuyển thành 0 hoặc đánh dấu hoàn thành', () => {
+    const nullKpi = evaluateProductionOutput(null);
+    expect(nullKpi.finishedOutput).toBeNull();
+    expect(nullKpi.isCompleted).toBe(false);
+    expect(nullKpi.remaining).toBeNull();
+    expect(nullKpi.excess).toBeNull();
+    expect(nullKpi.completionRate).toBeNull();
+    expect(nullKpi.statusLabel).toBe('Chưa có dữ liệu');
+
+    const undefinedKpi = evaluateProductionOutput(undefined);
+    expect(undefinedKpi.finishedOutput).toBeNull();
+    expect(undefinedKpi.isCompleted).toBe(false);
+    expect(undefinedKpi.statusLabel).toBe('Chưa có dữ liệu');
+  });
+
+  it('Định dạng hiển thị tiếng Việt và số liệu an toàn', () => {
     expect(formatMetricNumber(null, 0, 'cái')).toBe('--');
     expect(formatMetricNumber(undefined, 0, 'cái')).toBe('--');
     expect(formatPercentage(null)).toBe('--');
 
-    // Số hợp lệ có đơn vị
     const formatted = formatMetricNumber(5408, 0, 'cái');
     expect(formatted).toContain('5.408');
     expect(formatted).toContain('cái');
@@ -69,12 +99,9 @@ describe('Quy tắc KPI và tính toán sản xuất (Mục 6 & 20)', () => {
   });
 
   it('Đánh giá nút thắt: Processing gần 100% không tự chứng minh nút thắt nếu không có ứ đọng', () => {
-    // Trường hợp máy chạy 99% nhưng hàng chờ rỗng (WIP = 0, Staytime = 2s) -> Không phải nút thắt
     const normalEval = evaluateBottleneck(99.0, 0.1, 2.0, 30);
     expect(normalEval.isBottleneck).toBe(false);
-    expect(normalEval.severity).toBe('NORMAL');
 
-    // Trường hợp CD05: Processing 99.89%, Avg WIP 22.31, Staytime 700.33s -> Nút thắt nghiêm trọng
     const bottleneckEval = evaluateBottleneck(99.89, 22.31, 700.33, 30);
     expect(bottleneckEval.isBottleneck).toBe(true);
     expect(bottleneckEval.severity).toBe('CRITICAL');

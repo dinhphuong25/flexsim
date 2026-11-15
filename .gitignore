@@ -21,6 +21,7 @@ yarn-error.log*
 pnpm-debug.log*
 .vitest/
 coverage/
+*.tsbuildinfo
 
 # OS Files
 .DS_Store

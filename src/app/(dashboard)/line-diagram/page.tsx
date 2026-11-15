@@ -1,6 +1,7 @@
 import React from 'react';
 import { repository } from '@/lib/repository';
-import { InteractiveLineDiagram } from '@/components/line-diagram/interactive-diagram';
+import { LineDiagramTabs } from '@/components/line-diagram/line-diagram-tabs';
+import { CombinerSyncTracker } from '@/components/line-diagram/combiner-sync-tracker';
 import { Network } from 'lucide-react';
 
 export default async function LineDiagramPage() {
@@ -37,18 +38,21 @@ export default async function LineDiagramPage() {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-          <Network className="h-6 w-6 text-teal-600" />
-          Sơ Đồ Chuyền May Tương Tác (Line Routing Flow)
+      <div className="border-b border-slate-200 pb-3">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <Network className="h-5 w-5 text-teal-600" />
+          Sơ Đồ Chuyền May & Bố Trí Không Gian FlexSim 2027
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Biểu diễn luồng may 4 nhánh độc lập (Thân trước, Thân sau, Cạp lưng, Paget), 3 điểm ráp Combiner (R01, R02, R03) và trạm song song.
-          Nhấp vào bất kỳ đối tượng nào để xem chi tiết thống kê kỹ thuật.
+        <p className="text-xs text-slate-500 mt-1">
+          Tích hợp trực quan giữa giao diện mô hình 3D thực tế của Autodesk FlexSim và sơ đồ khối luồng sản xuất 4 nhánh cấp liệu, 3 điểm ráp Combiner và 4 công nhân điều chuyển.
         </p>
       </div>
 
-      <InteractiveLineDiagram nodes={diagramNodes} />
+      {/* Feature 2: Bộ Theo Dõi Đồng Bộ 3 Điểm Ráp Combiners */}
+      <CombinerSyncTracker />
+
+      {/* Sơ đồ tương tác và bản đồ 3D */}
+      <LineDiagramTabs nodes={diagramNodes} />
     </div>
   );
 }

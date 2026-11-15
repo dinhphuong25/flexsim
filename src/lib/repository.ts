@@ -1,5 +1,65 @@
 import { store } from './data-store';
 import { prisma } from './prisma';
+import {
+  CHOT_REFERENCE_KPIS,
+  REFERENCE_CONTROL_CONFIGS,
+  generateArrivalSchedule,
+} from './line-model-definition';
+import {
+  WorkerPosition,
+  SkillLevel,
+  ChecklistStatus,
+  TaskChecklistItem,
+  INITIAL_WORKFORCE_POSITIONS,
+  getInitialSkillMatrix,
+  getInitialChecklists,
+} from './workforce';
+import {
+  SafeStockThresholdConfig,
+  SafeStockAuditLog,
+  validateSafeStockConfig,
+} from './safe-stock';
+
+function ensureWorkforceInitialized() {
+  if (!store.workforcePositions || store.workforcePositions.size === 0) {
+    store.workforcePositions = new Map();
+    for (const pos of INITIAL_WORKFORCE_POSITIONS) {
+      store.workforcePositions.set(pos.positionCode, { ...pos });
+    }
+  }
+  if (!store.skillMatrix || Object.keys(store.skillMatrix).length === 0) {
+    store.skillMatrix = getInitialSkillMatrix();
+  }
+  if (!store.taskChecklists || store.taskChecklists.size === 0) {
+    store.taskChecklists = new Map();
+    for (const chk of getInitialChecklists()) {
+      store.taskChecklists.set(chk.id, chk);
+    }
+  }
+  if (!store.safeStockThresholds) {
+    store.safeStockThresholds = new Map();
+    const cd05Threshold: SafeStockThresholdConfig = {
+      id: 'cfg_stock_cd05',
+      targetCode: 'CD05',
+      targetType: 'STAGE',
+      minStock: 2,
+      safeStockMax: 15,
+      criticalStock: 25,
+      consecutiveSecondsBeforeAlert: 60,
+      scope: 'END_OF_RUN',
+      modelVersion: 'v1.0-baseline',
+      scenarioCode: 'SCEN_CO_DINH',
+      effectiveFrom: '2026-11-14T08:00:00.000Z',
+      basisNotes: 'Căn cứ thiết kế mặt bằng đệm trạm CD05 và năng lực giải tỏa của trạm P_CD05B_HOTRO',
+      updatedBy: 'admin@vietthanh.vn',
+      updatedAt: '2026-11-14T08:00:00.000Z',
+    };
+    store.safeStockThresholds.set(cd05Threshold.targetCode, cd05Threshold);
+  }
+  if (!store.safeStockAuditLogs) {
+    store.safeStockAuditLogs = new Map();
+  }
+}
 
 let isPostgresConnected: boolean | null = null;
 
@@ -35,6 +95,228 @@ export const repository = {
 
   async getAllWorkers() {
     return Array.from(store.workers.values());
+  },
+
+  // Workforce Positions & Assignments
+  async getAllWorkforcePositions(): Promise<WorkerPosition[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.workforcePositions.values());
+  },
+
+  async getWorkforcePositionByCode(code: string): Promise<WorkerPosition | null> {
+    ensureWorkforceInitialized();
+    return store.workforcePositions.get(code) || null;
+  },
+
+  async updateWorkforcePosition(
+    code: string,
+    data: Partial<WorkerPosition>,
+    updatedBy?: string
+  ): Promise<WorkerPosition | null> {
+    ensureWorkforceInitialized();
+    const existing = store.workforcePositions.get(code);
+    if (!existing) return null;
+
+    const updated: WorkerPosition = {
+      ...existing,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    store.workforcePositions.set(code, updated);
+
+    // Đồng bộ sang workers entity
+    const worker = store.workers.get(code);
+    if (worker) {
+      if (data.displayName) worker.name = data.displayName;
+      if (data.primaryStation) worker.primaryStation = data.primaryStation;
+      if (data.supportStation) worker.secondaryStation = data.supportStation;
+      if (data.transferRule) worker.transferRule = data.transferRule;
+    }
+
+    await this.logAction('UPDATE_WORKER_POSITION', 'WORKER_POSITION', code, data, updatedBy);
+    return updated;
+  },
+
+  // Skill Matrix
+  async getSkillMatrix(): Promise<Record<string, Record<string, SkillLevel>>> {
+    ensureWorkforceInitialized();
+    return { ...store.skillMatrix };
+  },
+
+  async updateSkill(
+    positionCode: string,
+    stageCode: string,
+    level: SkillLevel,
+    updatedBy?: string
+  ): Promise<boolean> {
+    ensureWorkforceInitialized();
+    if (!store.skillMatrix[positionCode]) {
+      store.skillMatrix[positionCode] = {};
+    }
+    store.skillMatrix[positionCode][stageCode] = level;
+    await this.logAction(
+      'UPDATE_SKILL',
+      'WORKER_SKILL',
+      `${positionCode}_${stageCode}`,
+      { positionCode, stageCode, level },
+      updatedBy
+    );
+    return true;
+  },
+
+  // Checklists
+  async getAllChecklists(): Promise<TaskChecklistItem[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.taskChecklists.values());
+  },
+
+  async getChecklistsByPosition(positionCode: string): Promise<TaskChecklistItem[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.taskChecklists.values()).filter((c) => c.positionCode === positionCode);
+  },
+
+  async updateChecklistStatus(
+    id: string,
+    status: ChecklistStatus,
+    notes?: string,
+    updatedBy?: string
+  ): Promise<TaskChecklistItem | null> {
+    ensureWorkforceInitialized();
+    const item = store.taskChecklists.get(id);
+    if (!item) return null;
+
+    item.status = status;
+    if (notes !== undefined) item.notes = notes;
+    item.updatedAt = new Date().toISOString();
+    if (updatedBy) item.updatedBy = updatedBy;
+
+    store.taskChecklists.set(id, item);
+    await this.logAction('UPDATE_CHECKLIST', 'CHECKLIST_ITEM', id, { status, notes }, updatedBy);
+    return item;
+  },
+
+  // Safe Stock Thresholds & Governance
+  async getAllSafeStockThresholds(): Promise<SafeStockThresholdConfig[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.safeStockThresholds.values());
+  },
+
+  async getSafeStockThreshold(targetCode: string): Promise<SafeStockThresholdConfig | null> {
+    ensureWorkforceInitialized();
+    return store.safeStockThresholds.get(targetCode) || null;
+  },
+
+  async upsertSafeStockThreshold(
+    targetCode: string,
+    data: {
+      safeStockMax: number;
+      minStock?: number | null;
+      criticalStock?: number | null;
+      consecutiveSecondsBeforeAlert?: number;
+      scope?: 'IN_RUN' | 'END_OF_RUN' | 'BOTH';
+      targetType?: 'STAGE' | 'QUEUE' | 'PROCESSOR' | 'BUFFER';
+      basisNotes?: string;
+      changeReason?: string;
+    },
+    updatedBy: string = 'system'
+  ): Promise<{ success: boolean; config?: SafeStockThresholdConfig; error?: string }> {
+    ensureWorkforceInitialized();
+
+    const validation = validateSafeStockConfig({
+      safeStockMax: data.safeStockMax,
+      minStock: data.minStock,
+      criticalStock: data.criticalStock,
+      consecutiveSecondsBeforeAlert: data.consecutiveSecondsBeforeAlert,
+    });
+
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    const existing = store.safeStockThresholds.get(targetCode);
+    const nowIso = new Date().toISOString();
+
+    const updated: SafeStockThresholdConfig = {
+      id: existing?.id || `cfg_stock_${targetCode.toLowerCase()}`,
+      targetCode,
+      targetType: data.targetType || existing?.targetType || (targetCode.startsWith('Q_') ? 'QUEUE' : 'STAGE'),
+      minStock: data.minStock !== undefined ? data.minStock : (existing?.minStock ?? null),
+      safeStockMax: data.safeStockMax,
+      criticalStock: data.criticalStock !== undefined ? data.criticalStock : (existing?.criticalStock ?? null),
+      consecutiveSecondsBeforeAlert: data.consecutiveSecondsBeforeAlert ?? existing?.consecutiveSecondsBeforeAlert ?? 60,
+      scope: data.scope || existing?.scope || 'END_OF_RUN',
+      modelVersion: existing?.modelVersion || 'v1.0-baseline',
+      scenarioCode: existing?.scenarioCode || 'SCEN_CO_DINH',
+      effectiveFrom: nowIso,
+      basisNotes: data.basisNotes !== undefined ? data.basisNotes : (existing?.basisNotes || ''),
+      updatedBy,
+      updatedAt: nowIso,
+    };
+
+    store.safeStockThresholds.set(targetCode, updated);
+
+    // Lưu lịch sử thay đổi (Audit Log)
+    const auditLog: SafeStockAuditLog = {
+      id: `audit_stock_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      targetCode,
+      previousConfigJson: existing ? JSON.stringify(existing) : null,
+      newConfigJson: JSON.stringify(updated),
+      changeReason: data.changeReason || 'Cập nhật cấu hình ngưỡng tồn an toàn',
+      updatedBy,
+      changedAt: nowIso,
+    };
+    store.safeStockAuditLogs.set(auditLog.id, auditLog);
+
+    await this.logAction(
+      existing ? 'UPDATE_SAFE_STOCK_THRESHOLD' : 'CREATE_SAFE_STOCK_THRESHOLD',
+      'SAFE_STOCK_THRESHOLD',
+      targetCode,
+      { previous: existing, current: updated, reason: data.changeReason },
+      updatedBy
+    );
+
+    return { success: true, config: updated };
+  },
+
+  async deleteSafeStockThreshold(
+    targetCode: string,
+    changeReason: string = 'Xóa cấu hình ngưỡng, chuyển về trạng thái Chưa cấu hình',
+    updatedBy: string = 'system'
+  ): Promise<boolean> {
+    ensureWorkforceInitialized();
+    const existing = store.safeStockThresholds.get(targetCode);
+    if (!existing) return false;
+
+    store.safeStockThresholds.delete(targetCode);
+    const nowIso = new Date().toISOString();
+
+    const auditLog: SafeStockAuditLog = {
+      id: `audit_stock_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      targetCode,
+      previousConfigJson: JSON.stringify(existing),
+      newConfigJson: null,
+      changeReason,
+      updatedBy,
+      changedAt: nowIso,
+    };
+    store.safeStockAuditLogs.set(auditLog.id, auditLog);
+
+    await this.logAction('DELETE_SAFE_STOCK_THRESHOLD', 'SAFE_STOCK_THRESHOLD', targetCode, { reason: changeReason }, updatedBy);
+    return true;
+  },
+
+  async getAllSafeStockAuditLogs(): Promise<SafeStockAuditLog[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.safeStockAuditLogs.values()).sort(
+      (a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime()
+    );
+  },
+
+  async getSafeStockAuditLogsByTarget(targetCode: string): Promise<SafeStockAuditLog[]> {
+    ensureWorkforceInitialized();
+    return Array.from(store.safeStockAuditLogs.values())
+      .filter((log) => log.targetCode === targetCode)
+      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime());
   },
 
   // Scenarios
@@ -76,9 +358,15 @@ export const repository = {
 
   // Simulation Runs
   async getAllRuns() {
-    return Array.from(store.simulationRuns.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const list = Array.from(store.simulationRuns.values());
+    return list.sort((a, b) => {
+      // Ưu tiên lượt tham chiếu đã chốt (RUN_CHOT_5427) lên đầu tiên làm mặc định
+      const isAChot = a.id === 'run_chot_5427' || a.runCode === 'RUN_CHOT_5427';
+      const isBChot = b.id === 'run_chot_5427' || b.runCode === 'RUN_CHOT_5427';
+      if (isAChot && !isBChot) return -1;
+      if (!isAChot && isBChot) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   },
 
   async getRunById(id: string) {
@@ -264,8 +552,20 @@ export const repository = {
 
   // Users
   async getUserByEmail(email: string) {
+    return this.getUserByIdentifier(email);
+  },
+
+  async getUserByIdentifier(identifier: string) {
+    if (!identifier) return null;
+    const raw = identifier.trim().toLowerCase();
     for (const u of store.users.values()) {
-      if (u.email.toLowerCase() === email.toLowerCase()) return u;
+      if (
+        u.email.toLowerCase() === raw ||
+        (u.username && u.username.toLowerCase() === raw) ||
+        u.email.toLowerCase().split('@')[0] === raw
+      ) {
+        return u;
+      }
     }
     return null;
   },
@@ -300,6 +600,19 @@ export const repository = {
     const fullJob = { ...job, id };
     store.importJobs.set(id, fullJob);
     return fullJob;
+  },
+
+  // Cấu hình tham chiếu và lịch cấp liệu (Mục 4, 8, 10)
+  async getChotReferenceKpis() {
+    return CHOT_REFERENCE_KPIS;
+  },
+
+  async getControlConfigs() {
+    return REFERENCE_CONTROL_CONFIGS;
+  },
+
+  async getArrivalSchedule(sourceName?: string) {
+    return generateArrivalSchedule(sourceName);
   },
 
   // Audit Logs

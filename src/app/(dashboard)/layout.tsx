@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { getCurrentUser } from '@/lib/auth';
 import { repository } from '@/lib/repository';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({
   children,
@@ -17,12 +19,22 @@ export default async function DashboardLayout({
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header
-          user={user || undefined}
-          activeRunCode={activeRun?.runCode || 'RUN_REF_141126'}
-          dataSourceLabel={activeRun?.sourceDescription || 'Đối chiếu ảnh kết quả mô phỏng ngày 14/11/2026'}
-          isLiveConnected={false}
-        />
+        <Suspense fallback={<div className="h-16 bg-white border-b border-slate-200" />}>
+          <Header
+            user={user || undefined}
+            activeRunCode={activeRun?.runCode || 'RUN_CHOT_5427'}
+            dataSourceLabel={activeRun?.sourceDescription || 'Ảnh kết quả đã chốt'}
+            isLiveConnected={false}
+            runs={runs.map((r) => ({
+              id: r.id,
+              runCode: r.runCode,
+              finishedCount: r.finishedCount,
+              sourceDescription: r.sourceDescription || '',
+              dataSource: r.dataSource,
+            }))}
+            currentRunId={activeRun?.id}
+          />
+        </Suspense>
         <main className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             {children}

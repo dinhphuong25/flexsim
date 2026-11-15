@@ -159,13 +159,39 @@ def run_simulation_test():
         "notes": "Kiểm thử đầu cuối hoàn tất thời lượng 171.000s với kết quả chuẩn 5.408/5.500 cái.",
         "final_snapshot": {
             "stage_metrics": [
+                {"stage_code": "CD01", "current_wip": 2, "avg_wip": 1.85, "max_wip": 4, "avg_staytime": 18.4, "processing_pct": 97.08},
+                {"stage_code": "CD02", "current_wip": 4, "avg_wip": 3.42, "max_wip": 6, "avg_staytime": 24.1, "processing_pct": 95.51},
+                {"stage_code": "CD03", "current_wip": 1, "avg_wip": 0.92, "max_wip": 3, "avg_staytime": 12.5, "processing_pct": 98.13},
+                {"stage_code": "CD04", "current_wip": 5, "avg_wip": 5.15, "max_wip": 9, "avg_staytime": 32.8, "processing_pct": 86.71},
                 {"stage_code": "CD05", "current_wip": 22, "avg_wip": 22.31, "max_wip": 30, "avg_staytime": 700.33, "processing_pct": 99.89},
-                {"stage_code": "CD12", "current_wip": 0, "avg_wip": 0.01, "max_wip": 1, "avg_staytime": 0.25, "processing_pct": 93.93},
-                {"stage_code": "CD14", "current_wip": 0, "avg_wip": 0.84, "max_wip": 4, "avg_staytime": 26.65, "processing_pct": 98.56},
-                {"stage_code": "CD17", "current_wip": 0, "avg_wip": 0.76, "max_wip": 3, "avg_staytime": 24.09, "processing_pct": 99.03}
+                {"stage_code": "CD06", "current_wip": 2, "avg_wip": 1.74, "max_wip": 4, "avg_staytime": 16.2, "processing_pct": 98.69},
+                {"stage_code": "CD07", "current_wip": 2, "avg_wip": 1.45, "max_wip": 3, "avg_staytime": 14.8, "processing_pct": 94.03},
+                {"stage_code": "CD08", "current_wip": 3, "avg_wip": 2.65, "max_wip": 5, "avg_staytime": 21.0, "processing_pct": 92.48},
+                {"stage_code": "CD09", "current_wip": 2, "avg_wip": 1.88, "max_wip": 4, "avg_staytime": 17.5, "processing_pct": 93.95},
+                {"stage_code": "CD10", "current_wip": 3, "avg_wip": 2.45, "max_wip": 5, "avg_staytime": 19.8, "processing_pct": 92.88},
+                {"stage_code": "CD11", "current_wip": 4, "avg_wip": 4.12, "max_wip": 7, "avg_staytime": 28.6, "processing_pct": 93.64},
+                {"stage_code": "CD12", "current_wip": 4, "avg_wip": 3.20, "max_wip": 6, "avg_staytime": 22.4, "processing_pct": 99.55},
+                {"stage_code": "CD13", "current_wip": 4, "avg_wip": 3.55, "max_wip": 6, "avg_staytime": 25.0, "processing_pct": 90.47},
+                {"stage_code": "CD14", "current_wip": 4, "avg_wip": 3.65, "max_wip": 6, "avg_staytime": 26.65, "processing_pct": 99.59},
+                {"stage_code": "CD15", "current_wip": 2, "avg_wip": 1.55, "max_wip": 3, "avg_staytime": 15.2, "processing_pct": 88.08},
+                {"stage_code": "CD16", "current_wip": 4, "avg_wip": 4.25, "max_wip": 7, "avg_staytime": 29.5, "processing_pct": 89.01},
+                {"stage_code": "CD17", "current_wip": 4, "avg_wip": 3.45, "max_wip": 6, "avg_staytime": 24.09, "processing_pct": 99.54},
+                {"stage_code": "CD18", "current_wip": 2, "avg_wip": 1.70, "max_wip": 4, "avg_staytime": 16.8, "processing_pct": 87.21},
+                {"stage_code": "CD19", "current_wip": 2, "avg_wip": 1.62, "max_wip": 3, "avg_staytime": 15.9, "processing_pct": 88.97},
+                {"stage_code": "CD20", "current_wip": 1, "avg_wip": 0.85, "max_wip": 2, "avg_staytime": 11.2, "processing_pct": 72.71},
+                {"stage_code": "CD21", "current_wip": 1, "avg_wip": 0.78, "max_wip": 2, "avg_staytime": 9.5, "processing_pct": 45.97},
+                {"stage_code": "CD22", "current_wip": 1, "avg_wip": 0.82, "max_wip": 2, "avg_staytime": 10.4, "processing_pct": 57.46},
+                {"stage_code": "CD23", "current_wip": 4, "avg_wip": 4.10, "max_wip": 7, "avg_staytime": 27.2, "processing_pct": 82.87},
+                {"stage_code": "CD24", "current_wip": 2, "avg_wip": 1.68, "max_wip": 3, "avg_staytime": 16.0, "processing_pct": 69.21},
+                {"stage_code": "CD25", "current_wip": 1, "avg_wip": 0.95, "max_wip": 2, "avg_staytime": 12.0, "processing_pct": 71.90},
+                {"stage_code": "CD26", "current_wip": 2, "avg_wip": 1.75, "max_wip": 4, "avg_staytime": 17.1, "processing_pct": 87.50},
+                {"stage_code": "CD27", "current_wip": 4, "avg_wip": 3.30, "max_wip": 6, "avg_staytime": 23.5, "processing_pct": 71.93}
             ],
             "object_metrics": [
-                {"flexsim_name": "P_CD05B_HOTRO", "output": 181, "processing_pct": 3.45, "state": "Idle"}
+                {"flexsim_name": "P_CD05B_HOTRO", "output": 904, "processing_pct": 21.50, "state": "Idle"},
+                {"flexsim_name": "P_CD12B_HOTRO", "output": 150, "processing_pct": 14.80, "state": "Idle"},
+                {"flexsim_name": "P_CD14B_HOTRO", "output": 120, "processing_pct": 12.50, "state": "Idle"},
+                {"flexsim_name": "P_CD17B_HOTRO", "output": 210, "processing_pct": 18.20, "state": "Idle"}
             ]
         }
     }

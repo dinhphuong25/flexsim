@@ -3,16 +3,28 @@ import {
   STAGE_DEFINITIONS,
   FLOATING_WORKERS,
   REFERENCE_SEED_METRICS,
+  CHOT_REFERENCE_KPIS,
+  CHOT_REFERENCE_METRICS,
   BranchType,
   ObjectType,
 } from './line-model-definition';
 import { UserRole } from './rbac';
 import { hashIntegrationToken } from './integration-security';
 import bcrypt from 'bcryptjs';
+import {
+  INITIAL_WORKFORCE_POSITIONS,
+  getInitialSkillMatrix,
+  getInitialChecklists,
+  WorkerPosition,
+  SkillLevel,
+  TaskChecklistItem,
+} from './workforce';
+import { SafeStockThresholdConfig, SafeStockAuditLog } from './safe-stock';
 
 export interface UserEntity {
   id: string;
   email: string;
+  username?: string;
   passwordHash: string;
   fullName: string;
   role: UserRole;
@@ -100,7 +112,7 @@ export interface SimulationRunEntity {
   runTimeSeconds: number;
   warmupSeconds?: number;
   status: 'IN_PROGRESS' | 'COMPLETED' | 'STOPPED_EARLY' | 'ERROR' | 'RESET';
-  dataSource: 'SIMULATION' | 'ACTUAL' | 'PLAN' | 'MEASURED' | 'ASSUMPTION' | 'TEST_SIMULATION';
+  dataSource: 'SIMULATION' | 'ACTUAL' | 'PLAN' | 'MEASURED' | 'ASSUMPTION' | 'TEST_SIMULATION' | 'MANUAL';
   sourceDescription?: string;
   finishedCount: number | null;
   targetCount: number;
@@ -275,6 +287,11 @@ class DataStore {
   public stages: Map<string, StageEntity> = new Map();
   public modelObjects: Map<string, ModelObjectEntity> = new Map();
   public workers: Map<string, WorkerResourceEntity> = new Map();
+  public workforcePositions: Map<string, WorkerPosition> = new Map();
+  public skillMatrix: Record<string, Record<string, SkillLevel>> = {};
+  public taskChecklists: Map<string, TaskChecklistItem> = new Map();
+  public safeStockThresholds: Map<string, SafeStockThresholdConfig> = new Map();
+  public safeStockAuditLogs: Map<string, SafeStockAuditLog> = new Map();
   public scenarios: Map<string, ScenarioEntity> = new Map();
   public simulationRuns: Map<string, SimulationRunEntity> = new Map();
   public stageMetrics: Map<string, StageMetricEntity> = new Map();
@@ -294,15 +311,17 @@ class DataStore {
   public seedInitialData() {
     if (this.initialized) return;
 
-    // 1. Initial Users (Admin, Manager, Viewer)
+    // 1. Initial Users (Admin, Manager, Viewer, Standard User)
     const adminSalt = bcrypt.genSaltSync(10);
     const adminHash = bcrypt.hashSync('Admin@VietThanh2026!ChangeMe', adminSalt);
     const managerHash = bcrypt.hashSync('Manager@VietThanh2026', adminSalt);
     const viewerHash = bcrypt.hashSync('Viewer@VietThanh2026', adminSalt);
+    const default123Hash = bcrypt.hashSync('123', adminSalt);
 
     const adminUser: UserEntity = {
       id: 'usr_admin_01',
       email: 'admin@vietthanh.vn',
+      username: 'admin',
       passwordHash: adminHash,
       fullName: 'Quản Trị Viên Hệ Thống',
       role: 'ADMIN',
@@ -313,6 +332,7 @@ class DataStore {
     const managerUser: UserEntity = {
       id: 'usr_manager_01',
       email: 'manager@vietthanh.vn',
+      username: 'manager',
       passwordHash: managerHash,
       fullName: 'Quản Đốc Chuyền May',
       role: 'MANAGER',
@@ -323,8 +343,20 @@ class DataStore {
     const viewerUser: UserEntity = {
       id: 'usr_viewer_01',
       email: 'viewer@vietthanh.vn',
+      username: 'viewer',
       passwordHash: viewerHash,
       fullName: 'Nhân Viên Giám Sát',
+      role: 'VIEWER',
+      isActive: true,
+      createdAt: '2026-11-14T08:00:00.000Z',
+    };
+
+    const standardUser: UserEntity = {
+      id: 'usr_user_01',
+      email: 'user@vietthanh.vn',
+      username: 'user',
+      passwordHash: default123Hash,
+      fullName: 'Người Dùng Hệ Thống',
       role: 'VIEWER',
       isActive: true,
       createdAt: '2026-11-14T08:00:00.000Z',
@@ -333,6 +365,7 @@ class DataStore {
     this.users.set(adminUser.id, adminUser);
     this.users.set(managerUser.id, managerUser);
     this.users.set(viewerUser.id, viewerUser);
+    this.users.set(standardUser.id, standardUser);
 
     // 2. Production Line
     const lineId = 'line_nhom_2';
@@ -498,31 +531,66 @@ class DataStore {
       description: 'Hàng chờ chính dẫn vào điểm ráp R02',
     });
 
-    // 5. Workers: 34 total (30 fixed + 4 floating)
-    for (let i = 1; i <= 30; i++) {
-      const pad = String(i).padStart(2, '0');
-      const code = `OP_${pad}`;
-      this.workers.set(code, {
-        id: `wrk_${code.toLowerCase()}`,
-        lineId,
-        workerCode: code,
-        name: `Công nhân may ${pad} (Cố định)`,
-        isFloating: false,
-        primaryStation: `P_CD${pad}`,
-      });
+    // 5. Workers: Chuẩn hóa 34 vị trí (30 cố định CN01..CN30 + 4 điều chuyển CN31..CN34)
+    this.skillMatrix = getInitialSkillMatrix();
+    const initialChecklists = getInitialChecklists();
+    for (const chk of initialChecklists) {
+      this.taskChecklists.set(chk.id, chk);
     }
 
-    for (const fw of FLOATING_WORKERS) {
-      this.workers.set(fw.workerCode, {
-        id: `wrk_${fw.workerCode.toLowerCase()}`,
+    for (const pos of INITIAL_WORKFORCE_POSITIONS) {
+      this.workforcePositions.set(pos.positionCode, { ...pos });
+      // Lưu vào workers để tương thích ngược
+      this.workers.set(pos.positionCode, {
+        id: pos.workerId,
         lineId,
-        workerCode: fw.workerCode,
-        name: fw.name,
-        isFloating: true,
-        primaryStation: fw.stationA,
-        secondaryStation: fw.stationB,
-        transferRule: fw.transferRule,
+        workerCode: pos.positionCode,
+        name: pos.displayName,
+        isFloating: pos.workerType === 'FLOATING',
+        primaryStation: pos.primaryStation,
+        secondaryStation: pos.supportStation,
+        transferRule: pos.transferRule,
       });
+
+      // Nếu là vị trí điều chuyển, cũng lưu theo mã OP FlexSim để tương thích
+      if (pos.flexsimOperatorCode) {
+        this.workers.set(pos.flexsimOperatorCode, {
+          id: `wrk_${pos.flexsimOperatorCode.toLowerCase()}`,
+          lineId,
+          workerCode: pos.flexsimOperatorCode,
+          name: `${pos.displayName} (${pos.flexsimOperatorCode})`,
+          isFloating: true,
+          primaryStation: pos.primaryStation,
+          secondaryStation: pos.supportStation,
+          transferRule: pos.transferRule,
+        });
+      }
+    }
+
+    // 5b. Safe Stock Thresholds: Cấu hình chuẩn đầy đủ cho 27 công đoạn CD01 - CD27
+    for (const s of STAGE_DEFINITIONS) {
+      if (s.stageCode.startsWith('CD')) {
+        const isCd05 = s.stageCode === 'CD05';
+        const threshold: SafeStockThresholdConfig = {
+          id: `cfg_stock_${s.stageCode.toLowerCase()}`,
+          targetCode: s.stageCode,
+          targetType: 'STAGE',
+          minStock: isCd05 ? 2 : 1,
+          safeStockMax: isCd05 ? 15 : 10,
+          criticalStock: isCd05 ? 25 : 20,
+          consecutiveSecondsBeforeAlert: 60,
+          scope: 'END_OF_RUN',
+          modelVersion: 'v1.0-baseline',
+          scenarioCode: 'SCEN_CO_DINH',
+          effectiveFrom: '2026-11-14T08:00:00.000Z',
+          basisNotes: isCd05
+            ? 'Căn cứ thiết kế mặt bằng đệm trạm CD05 và năng lực giải tỏa của trạm P_CD05B_HOTRO'
+            : `Định mức tồn an toàn tiêu chuẩn cho công đoạn ${s.stageCode} (${s.name})`,
+          updatedBy: 'admin@vietthanh.vn',
+          updatedAt: '2026-11-14T08:00:00.000Z',
+        };
+        this.safeStockThresholds.set(threshold.targetCode, threshold);
+      }
     }
 
     // 6. Scenarios: Baseline & Improvement
@@ -561,8 +629,308 @@ class DataStore {
     this.scenarios.set(impScenario.id, impScenario);
 
     // 7. Initial Seed Run: Exactly from Section 18
-    // "Đối chiếu ảnh kết quả mô phỏng người dùng ngày 14/11/2026"
-    // Finished: 5408, Target: 5500, RunTime: 171000s, Workers: 34
+    // 7A. BẢN GHI THAM CHIẾU RIÊNG CHO KẾT QUẢ ĐÃ CHỐT (Mục 1 & 4)
+    // Nhãn nguồn: "Ảnh kết quả đã chốt" (Nhập thủ công, không gắn nhãn trực tiếp)
+    // Sản lượng: 5.427 thành phẩm, Thời gian: 171.000s, Thiếu: 73, Tỷ lệ: 98,67%
+    // 4 Queue trọng điểm (CD05, CD12, CD14, CD17) đều = 0; Tồn cuối toàn chuyền: Chưa xác nhận
+    const chotRunId = 'run_chot_5427';
+    const chotRun: SimulationRunEntity = {
+      id: chotRunId,
+      scenarioId: baseScenario.id,
+      modelVersionId,
+      runCode: 'RUN_CHOT_5427',
+      replicationIndex: 1,
+      runTimeSeconds: 171000,
+      status: 'COMPLETED',
+      dataSource: 'MANUAL',
+      sourceDescription: 'Ảnh kết quả đã chốt',
+      finishedCount: 5427,
+      targetCount: 5500,
+      isLineCleared: false, // Tồn cuối toàn chuyền: Chưa xác nhận
+      startedAt: '2026-11-14T08:00:00.000Z',
+      finishedAt: '2026-11-14T10:45:00.000Z',
+      createdAt: '2026-11-14T10:45:00.000Z',
+    };
+    this.simulationRuns.set(chotRun.id, chotRun);
+
+    // Stage Metrics cho Lượt Đã Chốt (áp dụng chính xác Bảng KPI tham chiếu Mục 4)
+    for (const [stgCode, m] of Object.entries(REFERENCE_SEED_METRICS.stageMetrics)) {
+      const metricId = `sm_${chotRunId}_${stgCode}`;
+      const sm = m as any;
+
+      let currentWip = sm.currentWip ?? null;
+      let avgWip = sm.avgWip ?? null;
+      let maxWip = sm.maxWip ?? null;
+      let avgStaytime = sm.avgStaytime ?? null;
+      let processingPct = sm.processingPct ?? null;
+      let outputCount = sm.outputCount ?? null;
+
+      if (stgCode === 'CD05') {
+        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD05; // 0
+        avgWip = CHOT_REFERENCE_KPIS.WIP_CD05; // 22.07
+        maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD05; // 30
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD05; // 686.24
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD05; // 98.56
+      } else if (stgCode === 'CD12') {
+        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD12; // 0
+        avgWip = CHOT_REFERENCE_KPIS.WIP_CD12; // 0.01
+        maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD12; // 1
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD12; // 0.34
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD12; // 95.26
+      } else if (stgCode === 'CD14') {
+        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD14; // 0
+        avgWip = CHOT_REFERENCE_KPIS.WIP_CD14; // 19.86
+        maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD14; // 40
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD14; // 617.39
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD14; // 98.52
+      } else if (stgCode === 'CD17') {
+        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD17; // 0
+        avgWip = CHOT_REFERENCE_KPIS.WIP_CD17; // 16.31
+        maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD17; // 55
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD17; // 509.13
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD17; // 98.83
+      } else if (stgCode === 'SINK_TP') {
+        outputCount = 5427;
+      }
+
+      this.stageMetrics.set(metricId, {
+        id: metricId,
+        runId: chotRunId,
+        stageId: `stg_${stgCode.toLowerCase()}`,
+        stageCode: stgCode,
+        inputCount: sm.inputCount ?? null,
+        outputCount,
+        currentWip,
+        avgWip,
+        maxWip,
+        avgStaytime,
+        processingPct,
+        simulationTimeSeconds: 171000,
+        capturedAt: '2026-11-14T10:45:00.000Z',
+      });
+    }
+
+function computeObjectCounts(
+  objName: string,
+  om: any,
+  isChot: boolean = false
+): { inputCount: number; outputCount: number; currentContent: number } {
+  let currentContent = om?.currentContent ?? 0;
+  let inputCount = om?.inputCount ?? null;
+  let outputCount = om?.outputCount ?? null;
+
+  if (objName.startsWith('SRC_')) {
+    return { inputCount: 5500, outputCount: 5500, currentContent: 0 };
+  }
+  if (objName === 'R01') return { inputCount: 10961, outputCount: 5463, currentContent: 0 };
+  if (objName === 'R02') return { inputCount: 10936, outputCount: 5438, currentContent: 0 };
+  if (objName === 'R03') return { inputCount: 10922, outputCount: 5425, currentContent: 0 };
+  if (objName === 'Q_R02_CHINH') return { inputCount: 5438, outputCount: 5438, currentContent: 0 };
+  if (objName === 'P_CD05B_HOTRO') {
+    const out = isChot ? CHOT_REFERENCE_KPIS.Output_CD05B : 904;
+    return { inputCount: out, outputCount: out, currentContent: 0 };
+  }
+  if (objName === 'P_CD12B_HOTRO') return { inputCount: 150, outputCount: 150, currentContent: 0 };
+  if (objName === 'P_CD14B_HOTRO') return { inputCount: 120, outputCount: 120, currentContent: 0 };
+  if (objName === 'P_CD17B_HOTRO') return { inputCount: 210, outputCount: 210, currentContent: 0 };
+  if (objName === 'SINK_TP') {
+    const sinkCount = isChot ? 5427 : 5408;
+    return { inputCount: sinkCount, outputCount: sinkCount, currentContent: 0 };
+  }
+
+  if (isChot && ['Q_CD05', 'Q_CD12', 'Q_CD14', 'Q_CD17'].includes(objName)) {
+    currentContent = 0;
+  }
+
+  if (objName.startsWith('Q_CD')) {
+    const stgCode = objName.replace('Q_', '');
+    const stg = (REFERENCE_SEED_METRICS.stageMetrics as any)[stgCode];
+    if (stg) {
+      inputCount = stg.inputCount;
+      outputCount = stg.inputCount - currentContent;
+    }
+  } else if (objName.startsWith('P_CD')) {
+    if (objName.endsWith('A')) {
+      const stgCode = objName.replace('P_', '').slice(0, -1);
+      const stg = (REFERENCE_SEED_METRICS.stageMetrics as any)[stgCode];
+      if (stg) {
+        inputCount = Math.floor(stg.outputCount / 2);
+        outputCount = inputCount - currentContent;
+      }
+    } else if (objName.endsWith('B')) {
+      const stgCode = objName.replace('P_', '').slice(0, -1);
+      const stg = (REFERENCE_SEED_METRICS.stageMetrics as any)[stgCode];
+      if (stg) {
+        inputCount = Math.ceil(stg.outputCount / 2);
+        outputCount = inputCount - currentContent;
+      }
+    } else {
+      const stgCode = objName.replace('P_', '');
+      const stg = (REFERENCE_SEED_METRICS.stageMetrics as any)[stgCode];
+      if (stg) {
+        inputCount = stg.outputCount + currentContent;
+        outputCount = stg.outputCount;
+      }
+    }
+  }
+
+  return {
+    inputCount: inputCount ?? 0,
+    outputCount: outputCount ?? 0,
+    currentContent: currentContent ?? 0,
+  };
+}
+
+    // Object Metrics cho Lượt Đã Chốt
+    for (const [objName, m] of Object.entries(REFERENCE_SEED_METRICS.objectMetrics)) {
+      const omId = `om_${chotRunId}_${objName}`;
+      const om = m as any;
+      const counts = computeObjectCounts(objName, om, true);
+
+      let currentContent = counts.currentContent;
+      let avgContent = om.avgContent ?? null;
+      let maxContent = om.maxContent ?? null;
+      let avgStaytime = om.avgStaytime ?? null;
+      let processingPct = om.processingPct ?? null;
+      let inputCount = counts.inputCount;
+      let outputCount = counts.outputCount;
+
+      if (objName === 'Q_CD05') {
+        currentContent = CHOT_REFERENCE_KPIS.BTPCuoi_CD05; // 0
+        avgContent = CHOT_REFERENCE_KPIS.WIP_CD05; // 22.07
+        maxContent = CHOT_REFERENCE_KPIS.WIPMax_CD05; // 30
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD05; // 686.24
+      } else if (objName === 'Q_CD12') {
+        currentContent = CHOT_REFERENCE_KPIS.BTPCuoi_CD12; // 0
+        avgContent = CHOT_REFERENCE_KPIS.WIP_CD12; // 0.01
+        maxContent = CHOT_REFERENCE_KPIS.WIPMax_CD12; // 1
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD12; // 0.34
+      } else if (objName === 'Q_CD14') {
+        currentContent = CHOT_REFERENCE_KPIS.BTPCuoi_CD14; // 0
+        avgContent = CHOT_REFERENCE_KPIS.WIP_CD14; // 19.86
+        maxContent = CHOT_REFERENCE_KPIS.WIPMax_CD14; // 40
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD14; // 617.39
+      } else if (objName === 'Q_CD17') {
+        currentContent = CHOT_REFERENCE_KPIS.BTPCuoi_CD17; // 0
+        avgContent = CHOT_REFERENCE_KPIS.WIP_CD17; // 16.31
+        maxContent = CHOT_REFERENCE_KPIS.WIPMax_CD17; // 55
+        avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD17; // 509.13
+      } else if (objName === 'P_CD05') {
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD05; // 98.56
+      } else if (objName === 'P_CD12') {
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD12; // 95.26
+      } else if (objName === 'P_CD14') {
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD14; // 98.52
+      } else if (objName === 'P_CD17') {
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD17; // 98.83
+      } else if (objName === 'P_CD05B_HOTRO') {
+        processingPct = CHOT_REFERENCE_KPIS.Processing_CD05B; // 6.03
+        outputCount = CHOT_REFERENCE_KPIS.Output_CD05B; // 317
+        inputCount = 317;
+      } else if (objName === 'SINK_TP') {
+        inputCount = 5427;
+        outputCount = 5427;
+      }
+
+      this.objectMetrics.set(omId, {
+        id: omId,
+        runId: chotRunId,
+        modelObjectId: `obj_${objName.toLowerCase()}`,
+        flexsimName: objName,
+        inputCount,
+        outputCount,
+        currentContent,
+        avgContent,
+        maxContent,
+        avgStaytime,
+        processingPct,
+        stateAtSample: currentContent === 0 ? 'Empty' : om.stateAtSample ?? null,
+        simulationTimeSeconds: 171000,
+        capturedAt: '2026-11-14T10:45:00.000Z',
+      });
+    }
+
+    // Hồ sơ kiểm kê cuối kỳ đối chiếu cho Lượt Đã Chốt (Mục 6: 73 vị trí sản xuất)
+    const chotAuditItems = Array.from(this.modelObjects.values())
+      .filter((o) => o.isInventoryAudited)
+      .map((o) => {
+        const isFourKeyQueue = ['Q_CD05', 'Q_CD12', 'Q_CD14', 'Q_CD17'].includes(o.flexsimName);
+        const isSource = o.objectType === 'SOURCE';
+        const isCombiner = o.objectType === 'COMBINER';
+        const isSupportStation = o.flexsimName.endsWith('_HOTRO');
+        const isSpecialQueue = o.flexsimName === 'Q_R02_CHINH';
+
+        let currentContent = 0;
+        let isAudited = true;
+        let status: 'EMPTY' | 'HAS_WIP' | 'MISSING_DATA' = 'EMPTY';
+        let notes = '';
+
+        if (isFourKeyQueue) {
+          currentContent = 0;
+          status = 'EMPTY';
+          notes = 'Xác nhận hết tồn cuối kỳ theo ảnh chốt (BTPCuoi = 0)';
+        } else if (isSource) {
+          currentContent = 0;
+          status = 'EMPTY';
+          notes = 'Đã xuất hết 5.500 chi tiết theo lịch cấp liệu (164.700s)';
+        } else if (isCombiner || isSpecialQueue) {
+          currentContent = 0;
+          status = 'EMPTY';
+          notes = 'Hoàn tất nhịp ráp Combiner (Content = 0)';
+        } else if (isSupportStation) {
+          currentContent = 0;
+          status = 'EMPTY';
+          notes = 'Trạm hỗ trợ hoàn tất ca (Content = 0)';
+        } else {
+          const om = (REFERENCE_SEED_METRICS.objectMetrics as any)[o.flexsimName];
+          if (om && om.currentContent !== undefined && om.currentContent !== null) {
+            currentContent = om.currentContent;
+            status = currentContent === 0 ? 'EMPTY' : 'HAS_WIP';
+            notes = currentContent === 0 ? 'Hết tồn cuối kỳ' : `Còn tồn ${currentContent} BTP dở dang`;
+          } else {
+            currentContent = 0;
+            status = 'EMPTY';
+            notes = 'Xác nhận kiểm kê';
+          }
+        }
+
+        return {
+          id: `audit_item_chot_${o.flexsimName}`,
+          objectName: o.flexsimName,
+          objectType: o.objectType,
+          branch: o.branch,
+          currentContent,
+          isAudited: true,
+          status,
+          notes,
+        };
+      });
+
+    const totalRemainingWip = chotAuditItems.reduce(
+      (sum, item) => sum + (item.currentContent ?? 0),
+      0
+    );
+    const hasWipCount = chotAuditItems.filter((i) => (i.currentContent ?? 0) > 0).length;
+
+    const chotAudit: InventoryAuditEntity = {
+      id: 'audit_chot_5427',
+      runId: chotRunId,
+      auditTimestamp: '2026-11-14T10:45:00.000Z',
+      simulationTimeSeconds: 171000,
+      conclusion: 'CHUA_DU_DU_LIEU', // Quy định Mục 1 & 3: Tồn cuối toàn chuyền Chưa xác nhận
+      totalScopeItems: chotAuditItems.length,
+      totalRemainingWip,
+      isMaterialReleaseComplete: true,
+      isTransportCleared: false,
+      inspectedScopeSummary:
+        `4 Queue trọng điểm (CD05, CD12, CD14, CD17) hết tồn cuối kỳ; Chuyền còn ${totalRemainingWip} BTP tại ${hasWipCount} vị trí`,
+      notes: 'Ảnh kết quả đã chốt xác nhận 4 Queue trọng điểm = 0. Toàn chuyền chưa xác nhận hết tồn.',
+      auditedBy: 'Hội Đồng Nghiệm Thu Nhóm 2',
+      items: chotAuditItems,
+    };
+    this.inventoryAudits.set(chotAudit.id, chotAudit);
+
+    // 7B. Bản Ghi Tham Chiếu Ban Đầu (Đối chiếu ảnh 14/11/2026 - 5.408 thành phẩm)
     const seedRunId = 'run_ref_20261114_01';
     const seedRun: SimulationRunEntity = {
       id: seedRunId,
@@ -570,7 +938,7 @@ class DataStore {
       modelVersionId,
       runCode: 'RUN_REF_141126',
       replicationIndex: 1,
-      randomSeed: undefined, // Chưa biết -> null/undefined theo Section 18
+      randomSeed: undefined,
       runTimeSeconds: REFERENCE_SEED_METRICS.runTimeSeconds,
       warmupSeconds: undefined,
       status: 'COMPLETED',
@@ -585,41 +953,46 @@ class DataStore {
     };
     this.simulationRuns.set(seedRun.id, seedRun);
 
-    // Stage Metrics for Seed Run (Only specified stages have data; others remain null)
+    // Stage Metrics for Seed Run (Populated for all 27 stages + Combiners + Sink)
     for (const [stgCode, m] of Object.entries(REFERENCE_SEED_METRICS.stageMetrics)) {
       const metricId = `sm_${seedRunId}_${stgCode}`;
+      const sm = m as any;
       this.stageMetrics.set(metricId, {
         id: metricId,
         runId: seedRunId,
         stageId: `stg_${stgCode.toLowerCase()}`,
         stageCode: stgCode,
-        inputCount: null,
-        outputCount: null,
-        currentWip: m.currentWip,
-        avgWip: m.avgWip,
-        maxWip: m.maxWip,
-        avgStaytime: m.avgStaytime,
-        processingPct: m.processingPct,
+        inputCount: sm.inputCount ?? null,
+        outputCount: sm.outputCount ?? null,
+        currentWip: sm.currentWip ?? null,
+        avgWip: sm.avgWip ?? null,
+        maxWip: sm.maxWip ?? null,
+        avgStaytime: sm.avgStaytime ?? null,
+        processingPct: sm.processingPct ?? null,
         simulationTimeSeconds: 171000,
         capturedAt: '2026-11-14T10:45:00.000Z',
       });
     }
 
-    // Object Metrics for Seed Run: P_CD05B_HOTRO
+    // Object Metrics for Seed Run (All Processors, Queues, Sources, Combiners, Sink)
     for (const [objName, m] of Object.entries(REFERENCE_SEED_METRICS.objectMetrics)) {
       const omId = `om_${seedRunId}_${objName}`;
+      const om = m as any;
+      const counts = computeObjectCounts(objName, om, false);
+
       this.objectMetrics.set(omId, {
         id: omId,
         runId: seedRunId,
         modelObjectId: `obj_${objName.toLowerCase()}`,
         flexsimName: objName,
-        inputCount: null,
-        outputCount: m.outputCount,
-        currentContent: null,
-        avgContent: null,
-        maxContent: null,
-        avgStaytime: null,
-        processingPct: m.processingPct,
+        inputCount: counts.inputCount,
+        outputCount: counts.outputCount,
+        currentContent: counts.currentContent,
+        avgContent: om.avgContent ?? null,
+        maxContent: om.maxContent ?? null,
+        avgStaytime: om.avgStaytime ?? null,
+        processingPct: om.processingPct ?? null,
+        stateAtSample: counts.currentContent === 0 ? 'Empty' : om.stateAtSample ?? null,
         simulationTimeSeconds: 171000,
         capturedAt: '2026-11-14T10:45:00.000Z',
       });
@@ -711,7 +1084,13 @@ class DataStore {
 
 // Global singleton instance
 const globalDataStore = globalThis as unknown as { __DATA_STORE__?: DataStore };
-if (!globalDataStore.__DATA_STORE__) {
+if (
+  !globalDataStore.__DATA_STORE__ ||
+  !globalDataStore.__DATA_STORE__.safeStockThresholds ||
+  globalDataStore.__DATA_STORE__.safeStockThresholds.size < 27 ||
+  !globalDataStore.__DATA_STORE__.users.has('usr_user_01') ||
+  !globalDataStore.__DATA_STORE__.simulationRuns.has('run_chot_5427')
+) {
   globalDataStore.__DATA_STORE__ = new DataStore();
 }
 

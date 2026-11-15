@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { repository } from '@/lib/repository';
 import { getCurrentUser } from '@/lib/auth';
 import { generateSafeCsv, generateExcelWorkbook } from '@/lib/export-utils';
-import { formatMetricNumber, formatPercentage } from '@/lib/kpi';
+import {
+  formatMetricNumber,
+  formatPercentage,
+  evaluateProductionOutput,
+  evaluateAcceptanceCriteria,
+  CURRENT_PRODUCTION_TARGET,
+} from '@/lib/kpi';
 
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -38,9 +44,9 @@ export async function GET(req: NextRequest) {
       'Số trạm song song',
       'Input',
       'Output',
-      'Tồn hiện tại (Current WIP)',
+      'Tồn cuối kỳ (End WIP)',
       'Tồn trung bình (Avg WIP)',
-      'Tồn tối đa (Max WIP)',
+      'Tồn lớn nhất (Max WIP)',
       'Thời gian chờ TB (giây)',
       'Tỷ lệ vận hành (Processing %)',
       'Thời điểm đo (giây)',
@@ -92,35 +98,53 @@ export async function GET(req: NextRequest) {
   }
 
   if (type === 'RUN_OVERVIEW') {
+    const target = CURRENT_PRODUCTION_TARGET;
+    const latestAudit = await repository.getLatestAudit(targetRun.id);
+    const acceptance = evaluateAcceptanceCriteria({
+      actualOutput: targetRun.finishedCount,
+      target,
+      simulatedSeconds: targetRun.runTimeSeconds,
+      inventoryAudit: latestAudit
+        ? {
+            totalScopeItems: latestAudit.totalScopeItems,
+            auditedItemsCount: latestAudit.items.filter((i) => i.isAudited).length,
+            totalEndingWip: latestAudit.totalRemainingWip,
+            missingDataCount: latestAudit.items.filter((i) => i.status === 'MISSING_DATA').length,
+            hasWipCount: latestAudit.items.filter((i) => i.status === 'HAS_WIP').length,
+          }
+        : null,
+    });
+
     const headers = [
       'Mã lượt chạy',
       'Nguồn dữ liệu',
       'Mô tả nguồn',
-      'Mục tiêu (cái)',
+      'Mục tiêu yêu cầu (cái)',
       'Thành phẩm tại Sink (cái)',
       'Tỷ lệ hoàn thành (%)',
-      'Số còn thiếu (cái)',
+      'Còn thiếu (cái)',
       'Thời gian mô phỏng (giây)',
-      'Trạng thái',
+      'Tiêu chí A - Đạt sản lượng',
+      'Tiêu chí B - Hết tồn toàn chuyền',
+      'Tiêu chí C - Đồng thời đạt tiêu chí',
+      'Kết luận nghiệm thu',
       'Thời điểm xuất',
     ];
-
-    const completionRate = targetRun.finishedCount !== null
-      ? ((targetRun.finishedCount / targetRun.targetCount) * 100).toFixed(2)
-      : '';
-    const missing = targetRun.finishedCount !== null ? Math.max(targetRun.targetCount - targetRun.finishedCount, 0) : '';
 
     const rows = [
       [
         targetRun.runCode,
         targetRun.dataSource,
         targetRun.sourceDescription || '',
-        targetRun.targetCount,
-        targetRun.finishedCount ?? '',
-        completionRate,
-        missing,
+        `${target.toLocaleString('vi-VN')} cái`,
+        acceptance.actualOutput !== null ? acceptance.actualOutput : 'Chưa có dữ liệu',
+        acceptance.completionRate !== null ? `${acceptance.completionRate.toFixed(2)}%` : 'Chưa có dữ liệu',
+        acceptance.remaining !== null ? acceptance.remaining : '0',
         targetRun.runTimeSeconds,
-        targetRun.status,
+        acceptance.outputStatusLabel,
+        acceptance.fullLineClearLabel,
+        acceptance.allCriteriaPassed ? 'Đạt' : 'Chưa đạt',
+        acceptance.overallConclusionLabel,
         new Date().toISOString(),
       ],
     ];

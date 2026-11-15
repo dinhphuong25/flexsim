@@ -1,6 +1,8 @@
 import React from 'react';
 import { repository } from '@/lib/repository';
 import { ScenarioListAndComparison } from '@/components/scenarios/scenario-list-and-comparison';
+import { ScenarioAuditTrail } from '@/components/scenarios/scenario-audit-trail';
+import { StageControlConfigCard } from '@/components/scenarios/stage-control-config-card';
 import { GitCompare } from 'lucide-react';
 
 export default async function ScenariosPage() {
@@ -42,11 +44,18 @@ export default async function ScenariosPage() {
           Quản Lý Phương Án & Thống Kê Thực Nghiệm
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Thiết lập các kịch bản cải tiến (hệ số giảm thời gian gia công, ngưỡng chuyển người, lịch cấp phôi), so sánh các lần lặp mô phỏng với khoảng tin cậy 95% theo phân phối Student-t.
+          Thiết lập các kịch bản cải tiến (hệ số giảm thời gian gia công, ngưỡng chuyển người, lịch cấp phôi), so sánh các lần lặp mô phỏng với khoảng tin cậy 95% theo phân phối Student-t và cấu hình điều khiển ngưỡng động 4 công đoạn trọng yếu.
         </p>
       </div>
 
+      {/* Mục 10: Cấu hình điều khiển ngưỡng động và điều chuyển nhân lực */}
+      <StageControlConfigCard />
+
+      {/* Danh sách kịch bản & phân tích Student-t 10 Replications */}
       <ScenarioListAndComparison scenarios={scenariosWithStats} />
+
+      {/* Feature 4: Nhật Ký Thay Đổi Cấu Hình Phương Án & Đối Chiếu Thông Số Diff */}
+      <ScenarioAuditTrail />
     </div>
   );
 }
