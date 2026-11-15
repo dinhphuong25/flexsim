@@ -5,10 +5,10 @@
   "description": "Website quản trị chuyền may quần trẻ em nữ Nhóm 2 - Công ty TNHH May Xuất Khẩu Việt Thành có tích hợp FlexSim",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && opennextjs-cloudflare build",
-    "build:next": "prisma generate && next build",
+    "build": "prisma generate && next build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
