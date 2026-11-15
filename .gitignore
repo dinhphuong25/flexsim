@@ -2,9 +2,11 @@
 node_modules/
 .pnpm-store/
 
-# Next.js
+# Next.js & OpenNext
 .next/
 out/
+.open-next/
+.wrangler/
 
 # Environment files
 .env*.local
