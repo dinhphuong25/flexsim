@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { getCurrentUser } from '@/lib/auth';
@@ -12,6 +13,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
+  if (!user) {
+    redirect('/login');
+  }
+
   const runs = await repository.getAllRuns();
   const activeRun = runs[0] || null;
 
