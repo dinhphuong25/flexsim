@@ -7,3 +7,4 @@ allowBuilds:
   core-js: true
   esbuild: true
   prisma: true
+  workerd: true
