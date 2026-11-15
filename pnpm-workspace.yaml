@@ -8,6 +8,3 @@ allowBuilds:
   esbuild: true
   prisma: true
   workerd: true
-
-patchedDependencies:
-  '@opennextjs/cloudflare': patches/@opennextjs__cloudflare.patch
