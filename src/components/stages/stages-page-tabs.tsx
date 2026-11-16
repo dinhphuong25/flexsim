@@ -35,11 +35,11 @@ export function StagesPageTabs({
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200">
+      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           onClick={() => setActiveTab('STAGES')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors -mb-px',
+            'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs font-bold border-b-2 transition-colors -mb-px whitespace-nowrap shrink-0',
             activeTab === 'STAGES'
               ? 'border-teal-600 text-teal-700 bg-teal-50/40 rounded-t-lg'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -52,7 +52,7 @@ export function StagesPageTabs({
         <button
           onClick={() => setActiveTab('AUDIT')}
           className={cn(
-            'flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors -mb-px',
+            'flex items-center gap-2 px-3 sm:px-4 py-2.5 text-xs font-bold border-b-2 transition-colors -mb-px whitespace-nowrap shrink-0',
             activeTab === 'AUDIT'
               ? 'border-teal-600 text-teal-700 bg-teal-50/40 rounded-t-lg'
               : 'border-transparent text-slate-500 hover:text-slate-800'
