@@ -41,30 +41,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/manifest.json',
-  openGraph: {
-    title: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
-    description: 'Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm — Công ty TNHH May XK Việt Thành.',
-    url: 'https://demo.dinhphuong.dev',
-    siteName: 'Nhóm 2 — May XK Việt Thành',
-    images: [
-      {
-        url: 'https://demo.dinhphuong.dev/og-image.png?v=20261116',
-        secureUrl: 'https://demo.dinhphuong.dev/og-image.png?v=20261116',
-        width: 1200,
-        height: 630,
-        alt: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
-        type: 'image/png',
-      },
-    ],
-    locale: 'vi_VN',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
-    description: 'Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm.',
-    images: ['https://demo.dinhphuong.dev/og-image.png?v=20261116'],
-  },
 };
 
 export default function RootLayout({
@@ -79,25 +55,6 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-
-        {/* Thẻ Open Graph trực tiếp phục vụ xem trước link trên Zalo, Facebook, Telegram, v.v. */}
-        <meta property="og:title" content="Nhóm 2 — Quản Trị Chuyền May &amp; Mô Phỏng FlexSim" />
-        <meta property="og:description" content="Website quản trị số liệu chuyền may 27 công đoạn, kết nối mô hình 3D Autodesk FlexSim 2027, giám sát tồn BTP và nghiệm thu 5.500 sản phẩm — Công ty TNHH May XK Việt Thành." />
-        <meta property="og:image" content="https://demo.dinhphuong.dev/og-image.png?v=20261116" />
-        <meta property="og:image:secure_url" content="https://demo.dinhphuong.dev/og-image.png?v=20261116" />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:url" content="https://demo.dinhphuong.dev" />
-        <meta property="og:site_name" content="Nhóm 2 — May XK Việt Thành" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="vi_VN" />
-
-        {/* Thẻ Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Nhóm 2 — Quản Trị Chuyền May &amp; Mô Phỏng FlexSim" />
-        <meta name="twitter:description" content="Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm." />
-        <meta name="twitter:image" content="https://demo.dinhphuong.dev/og-image.png?v=20261116" />
       </head>
       <body className="min-h-screen bg-slate-50 antialiased selection:bg-teal-500 selection:text-white">
         {children}

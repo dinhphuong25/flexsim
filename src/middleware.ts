@@ -30,13 +30,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 1.5. Cho phép bot và crawler mạng xã hội (Zalo, Facebook, Twitter, Telegram, Discord, Skype, Viber...) lấy Open Graph metadata
-  const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
-  const isSocialCrawler = /facebookexternalhit|meta-externalagent|zalobot|zalo|twitterbot|telegrambot|slackbot|whatsapp|linkedinbot|discordbot|googlebot|bingbot|applebot|skype|viber|crawler|spider|preview|linkpreview/i.test(userAgent);
-  if (isSocialCrawler) {
-    return NextResponse.next();
-  }
-
   // 2. Cho phép API auth và API tích hợp FlexSim
   if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/integrations/flexsim')) {
     return NextResponse.next();

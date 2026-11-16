@@ -262,17 +262,7 @@ fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), ico);
 const APP_DIR = path.join(__dirname, '..', 'src', 'app');
 fs.writeFileSync(path.join(APP_DIR, 'favicon.ico'), ico);
 
-console.log('4. Checking Open Graph Banner (1200x630)...');
-const ogImagePath = path.join(PUBLIC_DIR, 'og-image.png');
-if (!fs.existsSync(ogImagePath)) {
-  console.log('Generating fallback Open Graph Banner...');
-  const ogPng = createPng(1200, 630, getOgPixel);
-  fs.writeFileSync(ogImagePath, ogPng);
-} else {
-  console.log('High-resolution Open Graph Banner already exists. Skipping overwrite.');
-}
-
-console.log('5. Generating public/manifest.json...');
+console.log('4. Generating public/manifest.json...');
 const manifest = {
   name: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
   short_name: 'Nhóm 2 FlexSim',
