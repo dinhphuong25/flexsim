@@ -30,9 +30,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 1.5. Cho phép bot và crawler mạng xã hội (Zalo, Facebook, Twitter, Telegram, Discord...) lấy Open Graph metadata
+  // 1.5. Cho phép bot và crawler mạng xã hội (Zalo, Facebook, Twitter, Telegram, Discord, Skype, Viber...) lấy Open Graph metadata
   const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
-  const isSocialCrawler = /facebookexternalhit|zalobot|twitterbot|telegrambot|slackbot|whatsapp|linkedinbot|discordbot|googlebot|bingbot|applebot/i.test(userAgent);
+  const isSocialCrawler = /facebookexternalhit|meta-externalagent|zalobot|zalo|twitterbot|telegrambot|slackbot|whatsapp|linkedinbot|discordbot|googlebot|bingbot|applebot|skype|viber|crawler|spider|preview|linkpreview/i.test(userAgent);
   if (isSocialCrawler) {
     return NextResponse.next();
   }
@@ -70,8 +70,8 @@ export const config = {
      * Khớp tất cả các đường dẫn ngoại trừ:
      * - _next/static (tệp tĩnh)
      * - _next/image (tệp tối ưu ảnh)
-     * - favicon.ico, icon.svg, manifest.json
+     * - favicon.ico, icon.svg, manifest.json, og-image.png
      */
-    '/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-touch-icon.png|manifest.json).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-touch-icon.png|manifest.json|og-image.png).*)',
   ],
 };

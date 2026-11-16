@@ -1,5 +1,6 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { getCurrentUser } from '@/lib/auth';
 import { repository } from '@/lib/repository';
@@ -12,7 +13,12 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
-  if (!user) {
+  const headersList = headers();
+  const userAgent = headersList.get('user-agent')?.toLowerCase() || '';
+  const isSocialCrawler = /facebookexternalhit|meta-externalagent|zalobot|zalo|twitterbot|telegrambot|slackbot|whatsapp|linkedinbot|discordbot|googlebot|bingbot|applebot|skype|viber|crawler|spider|preview|linkpreview/i.test(userAgent);
+
+  // Nếu chưa đăng nhập và không phải là bot mạng xã hội, chuyển hướng về /login
+  if (!user && !isSocialCrawler) {
     redirect('/login');
   }
 

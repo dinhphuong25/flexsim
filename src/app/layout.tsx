@@ -9,7 +9,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://flexsim.dinhphuong.dev'),
+  metadataBase: new URL('https://demo.dinhphuong.dev'),
   title: {
     default: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
     template: '%s | Nhóm 2 — May XK Việt Thành',
@@ -43,14 +43,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
     description: 'Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm — Công ty TNHH May XK Việt Thành.',
-    url: 'https://flexsim.dinhphuong.dev',
+    url: 'https://demo.dinhphuong.dev',
     siteName: 'Nhóm 2 — May XK Việt Thành',
     images: [
       {
-        url: '/og-image.png',
+        url: 'https://demo.dinhphuong.dev/og-image.png',
+        secureUrl: 'https://demo.dinhphuong.dev/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Nhóm 2 — Hệ Thống Quản Trị Chuyền May & Mô Phỏng FlexSim',
+        alt: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
+        type: 'image/png',
       },
     ],
     locale: 'vi_VN',
@@ -60,7 +62,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim',
     description: 'Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm.',
-    images: ['/og-image.png'],
+    images: ['https://demo.dinhphuong.dev/og-image.png'],
   },
 };
 
@@ -76,6 +78,25 @@ export default function RootLayout({
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
+
+        {/* Thẻ Open Graph trực tiếp phục vụ xem trước link trên Zalo, Facebook, Telegram, v.v. */}
+        <meta property="og:title" content="Nhóm 2 — Quản Trị Chuyền May &amp; Mô Phỏng FlexSim" />
+        <meta property="og:description" content="Website quản trị số liệu chuyền may 27 công đoạn, kết nối mô hình 3D Autodesk FlexSim 2027, giám sát tồn BTP và nghiệm thu 5.500 sản phẩm — Công ty TNHH May XK Việt Thành." />
+        <meta property="og:image" content="https://demo.dinhphuong.dev/og-image.png" />
+        <meta property="og:image:secure_url" content="https://demo.dinhphuong.dev/og-image.png" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content="https://demo.dinhphuong.dev" />
+        <meta property="og:site_name" content="Nhóm 2 — May XK Việt Thành" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="vi_VN" />
+
+        {/* Thẻ Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Nhóm 2 — Quản Trị Chuyền May &amp; Mô Phỏng FlexSim" />
+        <meta name="twitter:description" content="Website quản trị chuyền may 27 công đoạn, kết nối mô hình 3D FlexSim, theo dõi tồn BTP và nghiệm thu 5.500 sản phẩm." />
+        <meta name="twitter:image" content="https://demo.dinhphuong.dev/og-image.png" />
       </head>
       <body className="min-h-screen bg-slate-50 antialiased selection:bg-teal-500 selection:text-white">
         {children}
