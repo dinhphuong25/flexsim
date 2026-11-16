@@ -262,56 +262,15 @@ fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), ico);
 const APP_DIR = path.join(__dirname, '..', 'src', 'app');
 fs.writeFileSync(path.join(APP_DIR, 'favicon.ico'), ico);
 
-console.log('4. Generating Open Graph Banner (1200x630)...');
-// Tạo banner Open Graph đẹp mắt với gradient Slate-950, dải Teal, và thông tin dự án
-function getOgPixel(x, y) {
-  const nx = x / 1200;
-  const ny = y / 630;
-
-  // Header top border (Teal stripe)
-  if (ny < 0.015) {
-    return [13, 148, 136, 255]; // Teal 600
-  }
-
-  // Dark slate industrial gradient background
-  let r = Math.round(15 + nx * 10);
-  let g = Math.round(23 + ny * 8);
-  let b = Math.round(42 + nx * 15);
-
-  // Subtle grid line effect
-  if (x % 60 === 0 || y % 60 === 0) {
-    r += 10;
-    g += 15;
-    b += 20;
-  }
-
-  // Left card badge area (Emblem container: x: 80 to 280, y: 150 to 350)
-  if (x >= 80 && x <= 280 && y >= 150 && y <= 350) {
-    const iconX = Math.round(((x - 80) / 200) * 180);
-    const iconY = Math.round(((y - 150) / 200) * 180);
-    const px = getIconPixel(iconX, iconY, 180);
-    if (px[3] > 0) return px;
-  }
-
-  // Ambient glow around emblem
-  const distFromIcon = Math.hypot(x - 180, y - 250);
-  if (distFromIcon < 220) {
-    const glow = (1 - distFromIcon / 220) * 0.25;
-    r = Math.min(255, Math.round(r + 13 * glow * 10));
-    g = Math.min(255, Math.round(g + 148 * glow * 1.5));
-    b = Math.min(255, Math.round(b + 136 * glow * 1.5));
-  }
-
-  // Bottom footer accent bar
-  if (ny > 0.96) {
-    return [15, 118, 110, 255];
-  }
-
-  return [r, g, b, 255];
+console.log('4. Checking Open Graph Banner (1200x630)...');
+const ogImagePath = path.join(PUBLIC_DIR, 'og-image.png');
+if (!fs.existsSync(ogImagePath)) {
+  console.log('Generating fallback Open Graph Banner...');
+  const ogPng = createPng(1200, 630, getOgPixel);
+  fs.writeFileSync(ogImagePath, ogPng);
+} else {
+  console.log('High-resolution Open Graph Banner already exists. Skipping overwrite.');
 }
-
-const ogPng = createPng(1200, 630, getOgPixel);
-fs.writeFileSync(path.join(PUBLIC_DIR, 'og-image.png'), ogPng);
 
 console.log('5. Generating public/manifest.json...');
 const manifest = {
