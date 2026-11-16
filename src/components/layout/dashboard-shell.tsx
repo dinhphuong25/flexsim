@@ -37,7 +37,7 @@ export function DashboardShell({
   }, [pathname]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-[100dvh] overflow-hidden bg-slate-50">
       {/* Desktop Sidebar (ẩn trên mobile, hiện từ màn hình md trở lên) */}
       <Sidebar />
 

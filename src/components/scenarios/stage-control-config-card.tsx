@@ -30,9 +30,15 @@ export function StageControlConfigCard() {
         </div>
       </CardHeader>
       <CardContent className="pt-4 space-y-4">
+        {/* Gợi ý vuốt ngang trên màn hình điện thoại */}
+        <div className="flex items-center justify-between sm:hidden px-3 py-1.5 bg-teal-50 border border-teal-200 rounded-md text-[11px] text-teal-800 font-medium">
+          <span>Bảng 10 cột cấu hình ngưỡng</span>
+          <span className="font-bold flex items-center gap-1">Vuốt ngang sang phải &rarr;</span>
+        </div>
+
         {/* Bảng thông số 4 công đoạn trọng yếu */}
-        <div className="overflow-x-auto border border-slate-200 rounded-lg">
-          <table className="w-full text-xs text-left">
+        <div className="overflow-x-auto border border-slate-200 rounded-lg shadow-2xs">
+          <table className="min-w-[850px] w-full text-xs text-left">
             <thead className="bg-slate-100 text-slate-700 font-semibold uppercase text-[11px] border-b border-slate-200">
               <tr>
                 <th className="py-2.5 px-3">Công đoạn</th>
