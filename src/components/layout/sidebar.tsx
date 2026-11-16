@@ -146,7 +146,7 @@ export function MobileDrawer({
       />
 
       {/* Slide-over Drawer Panel */}
-      <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-slate-900 text-slate-100 flex flex-col shadow-2xl border-r border-slate-800 select-none overflow-hidden z-10 animate-in slide-in-from-left duration-200">
+      <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-slate-900 text-slate-100 flex flex-col shadow-2xl border-r border-slate-800 select-none overflow-hidden z-10 animate-in slide-in-from-left duration-200 safe-top-mobile">
         {/* Mobile Header with Close Button */}
         <div className="px-4 py-3.5 border-b border-slate-800/80 bg-slate-950/60 flex items-center justify-between shrink-0">
           <div>

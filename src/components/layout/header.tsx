@@ -130,7 +130,7 @@ export function Header({
   }, [autoSync, lastFileMtime]);
 
   return (
-    <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xs shrink-0 shadow-2xs z-20 pt-[env(safe-area-inset-top,0px)]">
+    <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xs shrink-0 shadow-2xs z-20 safe-top-mobile">
       {/* Tier 1: Top Navigation Bar */}
       <div className="h-14 sm:h-16 px-3 sm:px-4 md:px-6 flex items-center justify-between">
         {/* Left: Mobile Menu & Brand (Mobile) / Run Selector (Desktop) */}
