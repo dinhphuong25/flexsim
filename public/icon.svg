@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d9488" />
+      <stop offset="60%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#042f2e" />
+    </linearGradient>
+    <linearGradient id="metalBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="70%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+    <linearGradient id="goldSpool" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#022c22" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" stroke="#5eead4" stroke-width="8" filter="url(#shadow)" />
+
+  <!-- Ambient Light Reflection -->
+  <ellipse cx="256" cy="110" rx="180" ry="70" fill="#ffffff" opacity="0.08" />
+
+  <!-- Sewing Machine Emblem -->
+  <g transform="translate(68, 64) scale(8.5)">
+    <!-- Bedplate -->
+    <rect x="5" y="34" width="34" height="4.5" rx="2.25" fill="#f8fafc" />
+    <rect x="12" y="33" width="9" height="1.8" rx="0.9" fill="#cbd5e1" />
+
+    <!-- Machine Arm & Body -->
+    <path
+      d="M 29 34 
+         L 29 20 
+         C 29 17.5, 30.5 16, 32.5 16 
+         L 35.5 16 
+         C 36.5 16, 37 15, 37 14 
+         C 37 12.5, 35.5 11, 34 11 
+         L 15 11 
+         C 12.5 11, 10.5 13, 10.5 15.5 
+         L 10.5 24 
+         C 10.5 25.5, 11.8 26.8, 13.5 26.8 
+         L 18 26.8 
+         C 19.5 26.8, 20.5 25.5, 20.5 24 
+         L 20.5 21 
+         C 20.5 19, 21.8 17.5, 24 17.5 
+         L 26.5 17.5 
+         C 28 17.5, 29 18.5, 29 20 
+         L 29 34 
+         Z"
+      fill="url(#metalBody)"
+      stroke="#0f766e"
+      stroke-width="0.8"
+    />
+
+    <!-- Handwheel on Right -->
+    <rect x="35" y="14" width="2.8" height="10" rx="1.4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="0.5" />
+    <line x1="36.4" y1="16.5" x2="36.4" y2="21.5" stroke="#475569" stroke-width="1" stroke-linecap="round" />
+
+    <!-- Golden Spool on Top -->
+    <line x1="31" y1="5.5" x2="31" y2="11" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+    <rect x="29" y="5.5" width="4" height="4.8" rx="1.2" fill="url(#goldSpool)" stroke="#78350f" stroke-width="0.5" />
+
+    <!-- Take-up lever -->
+    <circle cx="12" cy="8.5" r="1.6" fill="#38bdf8" />
+    <path d="M 12 8.5 L 14 11" stroke="#38bdf8" stroke-width="1.6" stroke-linecap="round" />
+
+    <!-- Needle Bar & Presser Foot -->
+    <line x1="14" y1="26.8" x2="14" y2="34" stroke="#cbd5e1" stroke-width="1.5" />
+    <path d="M 12.5 33 L 15.5 33" stroke="#94a3b8" stroke-width="1" stroke-linecap="round" />
+    <line x1="15" y1="26.8" x2="15" y2="33.5" stroke="#38bdf8" stroke-width="0.8" />
+  </g>
+
+  <!-- Bottom Brand Text Badge -->
+  <rect x="156" y="408" width="200" height="48" rx="24" fill="#042f2e" stroke="#2dd4bf" stroke-width="3" />
+  <text x="256" y="440" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="24" fill="#ffffff" text-anchor="middle" letter-spacing="3">NHÓM 2</text>
+</svg>

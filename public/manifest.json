@@ -1,0 +1,28 @@
+{
+  "name": "Nhóm 2 — Quản Trị Chuyền May & Mô Phỏng FlexSim",
+  "short_name": "Nhóm 2 FlexSim",
+  "description": "Website quản trị số liệu chuyền may 27 công đoạn, kết nối FlexSim 2027, nghiệm thu 5.500 sản phẩm tại May Việt Thành.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0d9488",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

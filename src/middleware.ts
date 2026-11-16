@@ -20,13 +20,20 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Cho phép tài nguyên tĩnh, font, ảnh, favicon
+  // 1. Cho phép tài nguyên tĩnh, font, ảnh, favicon, manifest
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
     pathname.startsWith('/images') ||
     pathname.includes('.')
   ) {
+    return NextResponse.next();
+  }
+
+  // 1.5. Cho phép bot và crawler mạng xã hội (Zalo, Facebook, Twitter, Telegram, Discord...) lấy Open Graph metadata
+  const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
+  const isSocialCrawler = /facebookexternalhit|zalobot|twitterbot|telegrambot|slackbot|whatsapp|linkedinbot|discordbot|googlebot|bingbot|applebot/i.test(userAgent);
+  if (isSocialCrawler) {
     return NextResponse.next();
   }
 
@@ -60,11 +67,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Khớp tất cả các đường dẫn ngoại trừ:
+     * - _next/static (tệp tĩnh)
+     * - _next/image (tệp tối ưu ảnh)
+     * - favicon.ico, icon.svg, manifest.json
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-touch-icon.png|manifest.json).*)',
   ],
 };
