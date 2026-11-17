@@ -145,7 +145,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </Badge>
           </div>
           <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-            Mặt hàng: <span className="font-semibold text-slate-700">Quần trẻ em nữ</span> • Quy mô:{' '}
+            Mặt hàng: <span className="font-semibold text-slate-700">Quần trẻ em nữ</span> (Mã hàng:{' '}
+            <span className="font-semibold text-teal-800 font-mono">YSH1000218</span>) • Quy mô:{' '}
             <span className="font-semibold text-slate-700">27 công đoạn, 3 điểm ráp (R01, R02, R03)</span> • Tiêu chuẩn:{' '}
             <span className="font-semibold text-slate-700">5.500 sản phẩm / 171.000s (47h 30m)</span> • Nguồn dữ liệu:{' '}
             <span className="font-semibold text-teal-800">{activeRun?.sourceDescription || 'Ảnh kết quả đã chốt'}</span>

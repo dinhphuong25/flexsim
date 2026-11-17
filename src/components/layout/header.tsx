@@ -150,8 +150,8 @@ export function Header({
           {/* Mobile Brand Name */}
           <div className="flex items-center gap-1.5 md:hidden">
             <span className="font-black text-sm tracking-wider text-slate-900">NHÓM 2</span>
-            <Badge variant="outline" className="text-[10px] py-0 px-1 border-teal-300 text-teal-800 bg-teal-50">
-              May Việt Thành
+            <Badge variant="outline" className="text-[10px] font-mono font-bold py-0 px-1.5 border-teal-400 text-teal-800 bg-teal-50">
+              YSH1000218
             </Badge>
           </div>
 
@@ -188,7 +188,8 @@ export function Header({
             </div>
 
             <p className="text-[11px] text-slate-500 mt-0.5 truncate max-w-md lg:max-w-xl">
-              Nguồn: <span className="font-medium text-slate-700">{displaySource}</span>
+              Nguồn: <span className="font-medium text-slate-700">{displaySource}</span> • Mã hàng:{' '}
+              <span className="font-semibold text-teal-800 font-mono">YSH1000218</span>
             </p>
           </div>
         </div>

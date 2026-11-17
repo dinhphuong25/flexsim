@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [isShaking, setIsShaking] = useState(false);
 
   useEffect(() => {
-    document.title = 'Nhóm 2 - Hệ thống quản trị Demo';
+    document.title = 'Nhóm 2 - Quản Trị Chuyền May Quần Trẻ Em Nữ (Mã: YSH1000218)';
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -69,11 +69,17 @@ export default function LoginPage() {
 
       <div className="max-w-md w-full space-y-4 relative z-10">
         {/* Brand Header */}
-        <div className="text-center space-y-1.5">
+        <div className="text-center space-y-2">
           <h2 className="text-2xl font-extrabold tracking-tight text-white">NHÓM 2</h2>
           <p className="text-sm text-teal-300 font-medium">
             Hệ Thống Quản Trị Demo — Chuyền May Quần Trẻ Em Nữ
           </p>
+          <div className="flex items-center justify-center gap-1.5 pt-0.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-mono font-bold bg-teal-950/90 text-teal-300 border border-teal-500/40 shadow-sm">
+              <span className="text-[10px] text-teal-400 font-sans uppercase font-semibold">Mã hàng:</span>
+              YSH1000218
+            </span>
+          </div>
           <p className="text-xs text-slate-400">Tích hợp nhận dữ liệu tự động với phần mềm mô phỏng FlexSim</p>
         </div>
 

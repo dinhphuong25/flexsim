@@ -377,7 +377,7 @@ class DataStore {
       targetOutput: BASELINE_PRODUCTION_LINE.targetOutput,
       runTimeSeconds: BASELINE_PRODUCTION_LINE.runTimeSeconds,
       plannedWorkers: BASELINE_PRODUCTION_LINE.totalPlannedWorkers,
-      description: 'Chuyền sản xuất may quần dài và sooc trẻ em nữ xuất khẩu Nhóm 2',
+      description: 'Chuyền sản xuất may quần dài và sooc trẻ em nữ xuất khẩu (Mã hàng: YSH1000218) Nhóm 2',
       createdAt: '2026-11-14T08:00:00.000Z',
     };
     this.lines.set(line.id, line);
@@ -1011,7 +1011,7 @@ function computeObjectCounts(
       startDate: '2026-11-14T00:00:00.000Z',
       endDate: '2026-11-20T23:59:59.000Z',
       status: 'ACTIVE',
-      notes: 'Kế hoạch may đơn hàng Quần sooc nữ trẻ em xuất khẩu Hàn Quốc - Lô 5.500 cái',
+      notes: 'Kế hoạch may đơn hàng Quần sooc nữ trẻ em (Mã hàng: YSH1000218) xuất khẩu Hàn Quốc - Lô 5.500 cái',
       createdAt: '2026-11-14T07:30:00.000Z',
       materialReleases: [
         {

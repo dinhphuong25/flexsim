@@ -50,6 +50,8 @@ export interface FloatingWorkerDefinition {
 export const BASELINE_PRODUCTION_LINE = {
   code: 'LINE_NHOM_2',
   name: 'Chuyền may Quần trẻ em nữ - Nhóm 2',
+  productCode: 'YSH1000218',
+  productName: 'Quần trẻ em nữ',
   company: 'Công ty TNHH May Xuất Khẩu Việt Thành',
   targetOutput: 5500,
   runTimeSeconds: 171000, // ~47.5 hours

@@ -280,7 +280,7 @@ export function ReportCenter({
               <div className="text-left space-y-0.5">
                 <div className="text-xs uppercase font-semibold text-slate-600">CÔNG TY TNHH MAY XUẤT KHẨU VIỆT THÀNH</div>
                 <div className="text-sm font-bold tracking-tight text-slate-900 uppercase">CHUYỀN SẢN XUẤT MAY — NHÓM 2</div>
-                <div className="text-[11px] text-slate-500 font-mono">Dự án: Tối Ưu Hóa & Mô Phỏng Quần Trẻ Em Nữ</div>
+                <div className="text-[11px] text-slate-500 font-mono">Dự án: Tối Ưu Hóa & Mô Phỏng Quần Trẻ Em Nữ (Mã hàng: YSH1000218)</div>
               </div>
               <div className="text-right space-y-0.5">
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
@@ -299,7 +299,7 @@ export function ReportCenter({
                 BIÊN BẢN NGHIỆM THU & BÁO CÁO ĐÁNH GIÁ KỸ THUẬT
               </h2>
               <div className="text-sm font-semibold text-slate-700">
-                MÔ PHỎNG VẬN HÀNH CHUYỀN MAY QUẦN TRẺ EM NỮ TRÊN PHẦN MỀM AUTODESK FLEXSIM 2027
+                MÔ PHỎNG VẬN HÀNH CHUYỀN MAY QUẦN TRẺ EM NỮ (MÃ HÀNG: YSH1000218) TRÊN PHẦN MỀM AUTODESK FLEXSIM 2027
               </div>
               <div className="inline-block font-mono text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 mt-1">
                 Lượt mô phỏng tham chiếu: <strong>{selectedRun?.runCode || 'FLEXSIM_AUTOSAVE_1'}</strong> | Thời gian: 171.000s (~47,5 giờ)
