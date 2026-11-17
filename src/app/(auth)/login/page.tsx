@@ -108,7 +108,7 @@ export default function LoginPage() {
               )}
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300 block">Tài khoản hoặc Email</label>
+                <label className="text-xs font-semibold text-slate-300 block">Tên đăng nhập</label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                   <input
@@ -117,7 +117,7 @@ export default function LoginPage() {
                     disabled={isLoading || isSuccess}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Nhập tài khoản hoặc email"
+                    placeholder="Nhập tên đăng nhập (admin, manager...)"
                     className="w-full pl-9 pr-3 py-2 text-sm bg-slate-900 border border-slate-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 disabled:opacity-60 transition-opacity"
                   />
                 </div>

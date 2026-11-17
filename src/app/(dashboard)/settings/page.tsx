@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   const userSummaries = users.map((u) => ({
     id: u.id,
-    email: u.email,
+    username: u.username || u.email.split('@')[0],
     fullName: u.fullName,
     role: u.role,
     isActive: u.isActive,

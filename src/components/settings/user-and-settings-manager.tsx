@@ -8,7 +8,7 @@ import { Settings, Users, Shield, Plus, Lock, CheckCircle2, History } from 'luci
 
 interface UserSummary {
   id: string;
-  email: string;
+  username: string;
   fullName: string;
   role: string;
   isActive: boolean;
@@ -35,7 +35,7 @@ export function UserAndSettingsManager({
 }) {
   const [userList, setUserList] = useState(users);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'MANAGER' | 'VIEWER'>('VIEWER');
@@ -48,13 +48,13 @@ export function UserAndSettingsManager({
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, fullName, password, role }),
+        body: JSON.stringify({ username, fullName, password, role }),
       });
       const data = await res.json();
       if (res.ok) {
         setUserList((prev) => [data.user, ...prev]);
         setShowCreateModal(false);
-        setEmail('');
+        setUsername('');
         setFullName('');
         setPassword('');
       } else {
@@ -112,7 +112,7 @@ export function UserAndSettingsManager({
               <thead className="bg-slate-50 text-slate-600 font-semibold uppercase border-b">
                 <tr>
                   <th className="py-2.5 px-3">Họ và tên</th>
-                  <th className="py-2.5 px-3">Email đăng nhập</th>
+                  <th className="py-2.5 px-3">Tên đăng nhập</th>
                   <th className="py-2.5 px-3">Vai trò</th>
                   <th className="py-2.5 px-3">Ngày tạo</th>
                   <th className="py-2.5 px-3 text-center">Trạng thái</th>
@@ -122,7 +122,7 @@ export function UserAndSettingsManager({
                 {userList.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-50">
                     <td className="py-2.5 px-3 font-semibold text-slate-800">{u.fullName}</td>
-                    <td className="py-2.5 px-3 font-mono text-slate-600">{u.email}</td>
+                    <td className="py-2.5 px-3 font-mono font-medium text-slate-700">{u.username}</td>
                     <td className="py-2.5 px-3">
                       <Badge
                         variant={
@@ -215,13 +215,13 @@ export function UserAndSettingsManager({
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 block mb-1">Email đăng nhập</label>
+                <label className="font-semibold text-slate-700 block mb-1">Tên đăng nhập (Username)</label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="user@vietthanh.vn"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin, manager, viewer..."
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
                 />
               </div>

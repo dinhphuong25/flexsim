@@ -5,7 +5,7 @@ import { hasPermission } from '@/lib/rbac';
 import { z } from 'zod';
 
 const CreateUserSchema = z.object({
-  email: z.string().email(),
+  username: z.string().min(2),
   fullName: z.string().min(2),
   password: z.string().min(6),
   role: z.enum(['ADMIN', 'MANAGER', 'VIEWER']).default('VIEWER'),
@@ -34,33 +34,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'INVALID_PAYLOAD', details: parsed.error.format() }, { status: 400 });
     }
 
-    const { email, fullName, password, role } = parsed.data;
-    const existing = await repository.getUserByEmail(email);
+    const { username, fullName, password, role } = parsed.data;
+    const cleanUsername = username.trim().toLowerCase();
+    const existing = await repository.getUserByIdentifier(cleanUsername);
     if (existing) {
-      return NextResponse.json({ error: 'EMAIL_EXISTS', message: 'Email này đã được sử dụng.' }, { status: 409 });
+      return NextResponse.json({ error: 'USERNAME_EXISTS', message: 'Tên đăng nhập này đã được sử dụng.' }, { status: 409 });
     }
 
     const passwordHash = await hashPassword(password);
     const id = `usr_${Date.now()}`;
+    const createdAt = new Date().toISOString();
     const newUser = {
       id,
-      email,
+      username: cleanUsername,
+      email: `${cleanUsername}@vietthanh.vn`,
       passwordHash,
       fullName,
       role,
       isActive: true,
-      createdAt: new Date().toISOString(),
+      createdAt,
     };
 
     // Store in memory & log
     const { store } = await import('@/lib/data-store');
     store.users.set(id, newUser);
 
-    await repository.logAction('CREATE_USER', 'User', id, { email, role }, currentUser.id);
+    await repository.logAction('CREATE_USER', 'User', id, { username: cleanUsername, role }, currentUser.id);
 
     return NextResponse.json({
       status: 'SUCCESS',
-      user: { id, email, fullName, role, isActive: true },
+      user: { id, username: cleanUsername, fullName, role, isActive: true, createdAt },
     });
   } catch (error) {
     console.error('Lỗi khi tạo người dùng:', error);
