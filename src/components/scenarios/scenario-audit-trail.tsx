@@ -37,7 +37,7 @@ const AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'log_01',
     timestamp: '15/11/2026 15:42:10',
-    author: 'Kim Đình Phương (Kỹ sư FlexSim)',
+    author: 'Thành viên Nhóm 2',
     role: 'ADMIN',
     action: 'UPDATE_PROCESS_TIME',
     title: 'Đồng bộ chu kỳ gia công 4 vị trí nút thắt',
@@ -51,7 +51,7 @@ const AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'log_02',
     timestamp: '15/11/2026 14:15:30',
-    author: 'Đinh Thị Phương (Chuyền Trưởng Nhóm 2)',
+    author: 'Thành viên Nhóm 2',
     role: 'MANAGER',
     action: 'MODIFY_TRANSFER_THRESHOLD',
     title: 'Cập nhật ngưỡng kích hoạt điều chuyển OP_04_05',
@@ -65,7 +65,7 @@ const AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'log_03',
     timestamp: '14/11/2026 09:20:00',
-    author: 'Nguyễn Văn Thành (Quản Đốc Phân Xưởng)',
+    author: 'Thành viên Nhóm 2',
     role: 'MANAGER',
     action: 'ADJUST_FEEDING_SCHEDULE',
     title: 'Khóa lịch cấp phôi 4 nguồn nguyên liệu theo đơn hàng',
