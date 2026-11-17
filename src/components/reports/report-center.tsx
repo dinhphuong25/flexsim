@@ -476,38 +476,14 @@ export function ReportCenter({
               </p>
             </div>
 
-            {/* Khối chữ ký 4 bên */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs pt-4 border-t border-slate-300">
-              <div className="space-y-12">
+            {/* Khối chữ ký: Chỉ giữ lại Nhóm 2 */}
+            <div className="flex justify-center sm:justify-end text-center text-xs pt-6 border-t border-slate-300">
+              <div className="space-y-14 min-w-[220px] sm:pr-8">
                 <div>
-                  <div className="font-bold text-slate-900 uppercase">CHUYỀN TRƯỞNG NHÓM 2</div>
-                  <div className="text-[10px] text-slate-500 italic">(Ký và ghi rõ họ tên)</div>
+                  <div className="font-bold text-slate-900 uppercase text-sm">ĐẠI DIỆN NHÓM 2</div>
+                  <div className="text-[11px] text-slate-500 italic mt-0.5">(Ký và ghi rõ họ tên)</div>
                 </div>
-                <div className="font-bold text-slate-800 pt-6">Đinh Thị Phương</div>
-              </div>
-
-              <div className="space-y-12">
-                <div>
-                  <div className="font-bold text-slate-900 uppercase">KỸ SƯ MÔ PHỎNG FLEXSIM</div>
-                  <div className="text-[10px] text-slate-500 italic">(Ký và ghi rõ họ tên)</div>
-                </div>
-                <div className="font-bold text-slate-800 pt-6">Kim Đình Phương</div>
-              </div>
-
-              <div className="space-y-12">
-                <div>
-                  <div className="font-bold text-slate-900 uppercase">QUẢN ĐỐC PHÂN XƯỞNG</div>
-                  <div className="text-[10px] text-slate-500 italic">(Ký và ghi rõ họ tên)</div>
-                </div>
-                <div className="font-bold text-slate-800 pt-6">Nguyễn Văn Thành</div>
-              </div>
-
-              <div className="space-y-12">
-                <div>
-                  <div className="font-bold text-slate-900 uppercase">GIÁM ĐỐC KỸ THUẬT</div>
-                  <div className="text-[10px] text-slate-500 italic">(Ký và đóng dấu)</div>
-                </div>
-                <div className="font-bold text-slate-800 pt-6">Lê Hoàng Quân</div>
+                <div className="font-bold text-slate-900 text-sm tracking-wider">NHÓM 2</div>
               </div>
             </div>
           </div>
