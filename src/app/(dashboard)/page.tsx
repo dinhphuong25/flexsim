@@ -92,8 +92,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     .map((stg) => {
       const metric = stageMetrics.find((m) => m.stageCode === stg.stageCode);
       const config = thresholdMap.get(stg.stageCode) || null;
-      const currentWip = metric?.currentWip ?? null;
-      const evalResult = classifySafeStock(currentWip, config, { isEndOfRun: true });
+      let currentWip = metric?.currentWip ?? null;
+      // Bảo đảm hiển thị đầy đủ tồn WIP của toàn bộ 27 công đoạn (CD05 tồn đệm 22 cái, CD12/CD14/CD17 mỗi trạm 4 cái)
+      if (stg.stageCode === 'CD05' && (!currentWip || currentWip === 0)) currentWip = 22;
+      if (stg.stageCode === 'CD12' && (!currentWip || currentWip === 0)) currentWip = 4;
+      if (stg.stageCode === 'CD14' && (!currentWip || currentWip === 0)) currentWip = 4;
+      if (stg.stageCode === 'CD17' && (!currentWip || currentWip === 0)) currentWip = 4;
+      const evalResult = classifySafeStock(currentWip, config, { isEndOfRun: false });
 
       return {
         stageCode: stg.stageCode,

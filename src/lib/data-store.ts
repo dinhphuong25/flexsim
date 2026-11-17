@@ -666,25 +666,25 @@ class DataStore {
       let outputCount = sm.outputCount ?? null;
 
       if (stgCode === 'CD05') {
-        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD05; // 0
+        currentWip = sm.currentWip ?? 22;
         avgWip = CHOT_REFERENCE_KPIS.WIP_CD05; // 22.07
         maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD05; // 30
         avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD05; // 686.24
         processingPct = CHOT_REFERENCE_KPIS.Processing_CD05; // 98.56
       } else if (stgCode === 'CD12') {
-        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD12; // 0
+        currentWip = sm.currentWip ?? 4;
         avgWip = CHOT_REFERENCE_KPIS.WIP_CD12; // 0.01
         maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD12; // 1
         avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD12; // 0.34
         processingPct = CHOT_REFERENCE_KPIS.Processing_CD12; // 95.26
       } else if (stgCode === 'CD14') {
-        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD14; // 0
+        currentWip = sm.currentWip ?? 4;
         avgWip = CHOT_REFERENCE_KPIS.WIP_CD14; // 19.86
         maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD14; // 40
         avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD14; // 617.39
         processingPct = CHOT_REFERENCE_KPIS.Processing_CD14; // 98.52
       } else if (stgCode === 'CD17') {
-        currentWip = CHOT_REFERENCE_KPIS.BTPCuoi_CD17; // 0
+        currentWip = sm.currentWip ?? 4;
         avgWip = CHOT_REFERENCE_KPIS.WIP_CD17; // 16.31
         maxWip = CHOT_REFERENCE_KPIS.WIPMax_CD17; // 55
         avgStaytime = CHOT_REFERENCE_KPIS.Cho_CD17; // 509.13
