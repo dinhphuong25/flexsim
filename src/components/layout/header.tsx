@@ -81,25 +81,11 @@ export function Header({
 
   const handleSyncFlexSim = async (isAuto = false) => {
     setIsSyncing(true);
-    setSyncMessage(isAuto ? 'Đang tự động nạp...' : 'Đang đọc...');
-    try {
-      const res = await fetch('/api/integrations/flexsim/sync-local', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setSyncMessage(`Đã nạp ${data.finished_count}/${data.target_count} cái`);
-        router.refresh();
-      } else {
-        setSyncMessage(data.error || 'Lỗi đồng bộ');
-      }
-    } catch {
-      setSyncMessage('Lỗi kết nối máy chủ');
-    } finally {
+    setSyncMessage('Đồng bộ trực tiếp đang tắt');
+    setTimeout(() => {
       setIsSyncing(false);
-      setTimeout(() => setSyncMessage(null), 4000);
-    }
+      setTimeout(() => setSyncMessage(null), 3000);
+    }, 400);
   };
 
   // Live Auto-Sync Poller (Background Watcher)
@@ -221,12 +207,11 @@ export function Header({
             variant="outline"
             size="sm"
             onClick={() => handleSyncFlexSim(false)}
-            disabled={isSyncing}
-            className="h-8 px-2 sm:px-2.5 text-xs gap-1.5 border-teal-300 bg-teal-50 text-teal-800 hover:bg-teal-100 hover:border-teal-400 font-semibold shadow-2xs whitespace-nowrap"
-            title="Đọc trực tiếp từ tệp NHOM2_FINAL_2_autosave_1.sqlite trên máy trạm"
+            className="h-8 px-2 sm:px-2.5 text-xs gap-1.5 border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 font-semibold shadow-2xs whitespace-nowrap cursor-not-allowed opacity-75"
+            title="Đồng bộ trực tiếp đang tắt"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5 text-teal-700', isSyncing && 'animate-spin')} />
-            <span className="hidden sm:inline">{isSyncing ? 'Đang đọc...' : 'Đồng bộ'}</span>
+            <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
+            <span className="hidden sm:inline">Đồng bộ: Tắt</span>
           </Button>
 
           {/* User Info & Role Badge */}

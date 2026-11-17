@@ -244,8 +244,8 @@ export function IntegrationManager({
                 Tự động phát hiện và trích xuất dữ liệu từ các tệp mô hình FlexSim 2027 trên máy tính trạm
               </CardDescription>
             </div>
-            <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs font-mono self-start sm:self-auto">
-              ĐÃ SẴN SÀNG KẾT NỐI
+            <Badge className="bg-slate-800 text-slate-400 border-slate-700 text-xs font-mono self-start sm:self-auto">
+              ĐỒNG BỘ TRỰC TIẾP: ĐÃ TẮT
             </Badge>
           </div>
         </CardHeader>
@@ -284,17 +284,21 @@ export function IntegrationManager({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-            <Button
-              onClick={handleSyncDirect}
-              disabled={isSyncingDirect}
-              className="bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold gap-2 text-xs py-2.5 px-4 shadow-md"
-            >
-              <Zap className={cn('h-4 w-4', isSyncingDirect && 'animate-spin')} />
-              <span>{isSyncingDirect ? 'Đang đọc và nạp từ FlexSim...' : 'ĐỒNG BỘ TRỰC TIẾP TỪ FLEXSIM NGAY BÂY GIỜ'}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                disabled={true}
+                className="bg-slate-800 text-slate-400 border border-slate-700 font-bold gap-2 text-xs py-2 px-3.5 shadow-none cursor-not-allowed opacity-75"
+              >
+                <Zap className="h-4 w-4 text-slate-500" />
+                <span>ĐỒNG BỘ TRỰC TIẾP: ĐÃ TẮT</span>
+              </Button>
+              <Badge variant="outline" className="border-slate-700 text-slate-400 bg-slate-900/60 text-[11px] font-medium">
+                Chế độ xem cố định
+              </Badge>
+            </div>
 
             <span className="text-[11px] text-slate-400">
-              Nhấn để cập nhật toàn bộ 27 trạm, hiệu suất máy và số lượng sản phẩm mới nhất.
+              Chức năng đồng bộ trực tiếp từ máy trạm FlexSim đang tắt để cố định số liệu lượt chốt chuẩn (5.427 cái).
             </span>
           </div>
 
