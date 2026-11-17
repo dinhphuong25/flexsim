@@ -185,7 +185,7 @@ export function FlexSimModelViewer() {
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(MODEL_HOTSPOTS[1]); // Default to CD05
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showHotspots, setShowHotspots] = useState(true);
-  const [showDetailPanel, setShowDetailPanel] = useState(true);
+  const [showDetailPanel, setShowDetailPanel] = useState(false);
 
   return (
     <div className="space-y-4">

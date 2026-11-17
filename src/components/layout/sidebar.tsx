@@ -75,13 +75,8 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
 export function SidebarFooter() {
   return (
     <div className="px-4 py-2.5 border-t border-slate-800/80 bg-slate-950/50 text-[11px] text-slate-400 space-y-1 shrink-0">
-      <div className="flex items-center justify-between">
-        <span className="text-slate-400">FlexSim Model:</span>
-        <span className="text-teal-400 font-mono font-semibold">v1.0-baseline</span>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-slate-400">Thời gian chuẩn:</span>
-        <span className="text-slate-200 font-sans font-medium">171.000s (~47.5h)</span>
+      <div>
+        Copyright © 2026 - Dự án mô phỏng quản trị thuộc về Nhóm 2
       </div>
     </div>
   );
@@ -98,7 +93,7 @@ export function Sidebar() {
             YSH1000218
           </span>
         </div>
-        <p className="text-[11px] text-teal-400 font-semibold truncate mt-0.5">Quần Trẻ Em Nữ Demo</p>
+        <p className="text-[11px] text-teal-400 font-semibold truncate mt-0.5">Hệ Thống Quản Trị Demo</p>
       </div>
 
       {/* Navigation Links */}
@@ -161,7 +156,7 @@ export function MobileDrawer({
                 YSH1000218
               </span>
             </div>
-            <p className="text-[10px] text-teal-400 font-semibold truncate mt-0.5">Quần Trẻ Em Nữ Demo</p>
+            <p className="text-[10px] text-teal-400 font-semibold truncate mt-0.5">Hệ Thống Quản Trị Demo</p>
           </div>
           <button
             type="button"
