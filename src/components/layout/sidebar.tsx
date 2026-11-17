@@ -36,7 +36,7 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
 
   return (
     <nav className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0">
+      <div className="px-3 py-1 text-[11px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0">
         Phân Hệ Quản Trị
       </div>
 
@@ -51,7 +51,7 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
               href={item.href}
               onClick={onItemClick}
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all group shrink-0',
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm md:text-xs font-semibold transition-all group shrink-0',
                 isActive
                   ? 'bg-teal-600 text-white shadow-xs shadow-teal-900/40'
                   : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
@@ -87,13 +87,7 @@ export function Sidebar() {
     <aside className="hidden md:flex md:w-60 lg:w-64 bg-slate-900 text-slate-100 flex-col shrink-0 h-full border-r border-slate-800 select-none overflow-hidden">
       {/* Brand Header */}
       <div className="px-5 py-3.5 border-b border-slate-800/80 bg-slate-950/40 shrink-0">
-        <div className="flex items-center justify-between">
-          <h1 className="font-black text-lg tracking-wider text-white">NHÓM 2</h1>
-          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-700/60 shadow-xs">
-            YSH1000218
-          </span>
-        </div>
-        <p className="text-[11px] text-teal-400 font-semibold truncate mt-0.5">Hệ Thống Quản Trị Demo</p>
+        <p className="text-[11px] text-teal-400 font-semibold truncate">Hệ Thống Quản Trị Demo</p>
       </div>
 
       {/* Navigation Links */}
@@ -150,13 +144,7 @@ export function MobileDrawer({
         {/* Mobile Header with Close Button */}
         <div className="px-4 py-3.5 border-b border-slate-800/80 bg-slate-950/60 flex items-center justify-between shrink-0">
           <div>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-black text-base tracking-wider text-white">NHÓM 2</h1>
-              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-950 text-teal-300 border border-teal-700/60 shadow-xs">
-                YSH1000218
-              </span>
-            </div>
-            <p className="text-[10px] text-teal-400 font-semibold truncate mt-0.5">Hệ Thống Quản Trị Demo</p>
+            <p className="text-xs text-teal-400 font-semibold truncate">Hệ Thống Quản Trị Demo</p>
           </div>
           <button
             type="button"
