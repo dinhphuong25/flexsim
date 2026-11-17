@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Settings, Users, Shield, Plus, Lock, CheckCircle2, History } from 'lucide-react';
+import { Settings, Users, Shield, Lock, CheckCircle2, History } from 'lucide-react';
 
 interface UserSummary {
   id: string;
@@ -27,45 +26,11 @@ interface AuditLogSummary {
 export function UserAndSettingsManager({
   users,
   logs,
-  currentUserRole,
 }: {
   users: UserSummary[];
   logs: AuditLogSummary[];
-  currentUserRole: string;
 }) {
   const [userList, setUserList] = useState(users);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [username, setUsername] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'ADMIN' | 'MANAGER' | 'VIEWER'>('VIEWER');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, fullName, password, role }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setUserList((prev) => [data.user, ...prev]);
-        setShowCreateModal(false);
-        setUsername('');
-        setFullName('');
-        setPassword('');
-      } else {
-        alert(data.message || 'Lỗi khi tạo người dùng.');
-      }
-    } catch {
-      alert('Không thể kết nối đến máy chủ.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -81,12 +46,6 @@ export function UserAndSettingsManager({
           </p>
         </div>
 
-        {currentUserRole === 'ADMIN' && (
-          <Button size="sm" onClick={() => setShowCreateModal(true)} className="gap-1.5 shrink-0">
-            <Plus className="h-4 w-4" />
-            Tạo tài khoản mới
-          </Button>
-        )}
       </div>
 
       {/* Users List */}
@@ -187,82 +146,6 @@ export function UserAndSettingsManager({
         </CardContent>
       </Card>
 
-      {/* Modal: Create User */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-base text-slate-900">Tạo Tài Khoản Người Dùng Mới</h3>
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
-              >
-                &times;
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateUser} className="space-y-3 text-xs">
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Họ và tên</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Nguyễn Văn A"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Tên đăng nhập (Username)</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="admin, manager, viewer..."
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Mật khẩu khởi tạo</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Tối thiểu 6 ký tự..."
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Vai trò phân quyền</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600"
-                >
-                  <option value="VIEWER">VIEWER (Chỉ xem báo cáo &amp; sơ đồ)</option>
-                  <option value="MANAGER">MANAGER (Quản lý kế hoạch, phương án, nhập tệp)</option>
-                  <option value="ADMIN">ADMIN (Toàn quyền quản trị hệ thống)</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateModal(false)}>
-                  Hủy
-                </Button>
-                <Button type="submit" size="sm" disabled={isSubmitting}>
-                  {isSubmitting ? 'Đang tạo...' : 'Tạo tài khoản'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

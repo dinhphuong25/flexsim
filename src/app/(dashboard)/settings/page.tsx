@@ -30,7 +30,6 @@ export default async function SettingsPage() {
     <UserAndSettingsManager
       users={userSummaries}
       logs={logSummaries}
-      currentUserRole={currentUser?.role || 'ADMIN'}
     />
   );
 }

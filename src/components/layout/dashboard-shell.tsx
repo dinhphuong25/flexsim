@@ -89,10 +89,7 @@ export function DashboardShell({
             </button>
 
             <div className="pr-8">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-teal-600">
-                Nhóm 2
-              </p>
-              <h2 id="welcome-title" className="text-xl font-bold text-slate-900 sm:text-2xl">
+              <h2 id="welcome-title" className="text-lg font-bold text-slate-900">
                 Chào mừng đến với Hệ Thống Quản Trị Demo
               </h2>
               <p className="mt-4 text-justify leading-7 text-slate-600">
