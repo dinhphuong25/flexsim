@@ -333,10 +333,10 @@ export function StageManagementTable({
       {/* Main Stages Table */}
       <Card className="border-slate-200 shadow-xs overflow-hidden">
         <CardHeader className="py-3 px-4 bg-slate-50/60 border-b border-slate-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-teal-700" />
-              <CardTitle className="text-sm font-bold text-slate-900">
+              <CardTitle className="text-sm font-bold leading-5 text-slate-900">
                 Bảng Thống Kê 27 Công Đoạn, Điểm Ráp & Trạm Máy Song Song
               </CardTitle>
             </div>
@@ -348,7 +348,7 @@ export function StageManagementTable({
 
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-[980px] text-left text-xs border-collapse">
               <thead className="bg-slate-100/90 text-slate-700 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-2.5 px-3 w-8 text-center">#</th>
@@ -365,7 +365,14 @@ export function StageManagementTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredStages.map((stg) => {
+                {filteredStages.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="px-4 py-10 text-center text-sm text-slate-500">
+                      Không có công đoạn phù hợp với bộ lọc hiện tại.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStages.map((stg) => {
                   const isExpanded = expandedStages.has(stg.id);
                   const hasData = stg.metric !== null && stg.metric.currentWip !== null && stg.metric.currentWip !== undefined;
                   const currentWip = stg.metric?.currentWip ?? null;
@@ -677,7 +684,8 @@ export function StageManagementTable({
                       )}
                     </React.Fragment>
                   );
-                })}
+                  })
+                )}
               </tbody>
             </table>
           </div>

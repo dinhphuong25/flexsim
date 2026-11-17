@@ -39,6 +39,16 @@ function getRunOptionLabel(r: HeaderRunOption) {
   return `${r.runCode} (${r.finishedCount ? `${r.finishedCount.toLocaleString('vi-VN')} cái` : '--'})`;
 }
 
+function getMobileRunOptionLabel(r: HeaderRunOption) {
+  if (r.runCode === 'RUN_CHOT_5427') {
+    return '[Lượt chốt] RUN_CHOT_5427 (5.427 cái)';
+  }
+  if (r.runCode === 'FLEXSIM_DESKTOP_AUTOSAVE') {
+    return `FlexSim Desktop (${r.finishedCount ? r.finishedCount.toLocaleString('vi-VN') : '5.408'} cái)`;
+  }
+  return `${r.runCode} (${r.finishedCount ? `${r.finishedCount.toLocaleString('vi-VN')} cái` : '--'})`;
+}
+
 export function Header({
   user = { fullName: 'Quản Trị Viên', email: 'admin@vietthanh.vn', role: 'ADMIN' },
   activeRunCode = 'RUN_CHOT_5427',
@@ -118,7 +128,7 @@ export function Header({
   return (
     <header className="border-b border-slate-200 bg-white/95 backdrop-blur-xs shrink-0 shadow-2xs z-20 safe-top-mobile">
       {/* Tier 1: Top Navigation Bar */}
-      <div className="h-14 sm:h-16 px-3 sm:px-4 md:px-6 flex items-center justify-between">
+      <div className="h-14 sm:h-16 px-2.5 sm:px-4 md:px-6 flex items-center justify-between">
         {/* Left: Mobile Menu & Brand (Mobile) / Run Selector (Desktop) */}
         <div className="flex items-center gap-2 min-w-0">
           {onOpenMobileNav && (
@@ -134,9 +144,9 @@ export function Header({
           )}
 
           {/* Mobile Brand Name */}
-          <div className="flex items-center gap-1.5 md:hidden">
-            <span className="font-black text-sm tracking-wider text-slate-900">NHÓM 2</span>
-            <Badge variant="outline" className="text-[10px] font-mono font-bold py-0 px-1.5 border-teal-400 text-teal-800 bg-teal-50">
+          <div className="flex items-center gap-1 md:hidden">
+            <span className="font-black text-[13px] tracking-wider text-slate-900">NHÓM 2</span>
+            <Badge variant="outline" className="text-[9px] font-mono font-bold py-0 px-1 border-teal-400 text-teal-800 bg-teal-50">
               YSH1000218
             </Badge>
           </div>
@@ -207,8 +217,9 @@ export function Header({
             variant="outline"
             size="sm"
             onClick={() => handleSyncFlexSim(false)}
-            className="h-8 px-2 sm:px-2.5 text-xs gap-1.5 border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 font-semibold shadow-2xs whitespace-nowrap cursor-not-allowed opacity-75"
+            className="h-9 w-9 px-0 sm:h-8 sm:w-auto sm:px-2.5 text-xs gap-1.5 border-slate-200 bg-slate-100 text-slate-500 hover:bg-slate-200 font-semibold shadow-2xs whitespace-nowrap cursor-not-allowed opacity-75"
             title="Đồng bộ trực tiếp đang tắt"
+            aria-label="Đồng bộ đang tắt"
           >
             <RefreshCw className="h-3.5 w-3.5 text-slate-400" />
             <span className="hidden sm:inline">Đồng bộ: Tắt</span>
@@ -242,7 +253,7 @@ export function Header({
       </div>
 
       {/* Tier 2 on Mobile: Dedicated Context & Run Selector Bar */}
-      <div className="md:hidden border-t border-slate-200/80 bg-slate-50/90 px-3 py-1.5 flex items-center gap-2">
+      <div className="md:hidden border-t border-slate-200/80 bg-slate-50/90 px-2.5 py-1.5 flex items-center gap-1.5">
         <div className="min-w-0 flex-1">
           {runs && runs.length > 1 ? (
             <select
@@ -253,7 +264,7 @@ export function Header({
             >
               {runs.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {getRunOptionLabel(r)}
+                  {getMobileRunOptionLabel(r)}
                 </option>
               ))}
             </select>

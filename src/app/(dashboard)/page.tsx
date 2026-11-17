@@ -134,10 +134,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   return (
     <div className="space-y-6">
       {/* Tiêu đề trang & Ngữ cảnh Chuyền may */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-xl font-black tracking-tight text-slate-900">
+            <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
               Tổng Quan Vận Hành Chuyền May — Nhóm 2
             </h1>
             <Badge variant="navy" className="px-2.5 py-0.5 text-[11px] font-semibold">
@@ -159,20 +159,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <Link href="/line-diagram">
+        <div className="grid grid-cols-2 md:flex items-center gap-2 shrink-0">
+          <Link href="/line-diagram" className="min-w-0">
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 border-teal-300 text-teal-800 bg-teal-50/60 hover:bg-teal-100 text-xs font-semibold h-9 shadow-2xs"
+              className="w-full justify-center gap-1.5 border-teal-300 text-teal-800 bg-teal-50/60 hover:bg-teal-100 text-xs font-semibold h-9 shadow-2xs"
             >
               <Box className="h-4 w-4 text-teal-600" />
-              Sơ đồ 3D FlexSim
+              <span className="truncate">Sơ đồ 3D FlexSim</span>
             </Button>
           </Link>
-          <Link href="/reports">
-            <Button size="sm" className="gap-1.5 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white h-9 shadow-2xs">
-              Xuất báo cáo
+          <Link href="/reports" className="min-w-0">
+            <Button size="sm" className="w-full justify-center gap-1.5 text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white h-9 shadow-2xs">
+              <span className="truncate">Xuất báo cáo</span>
               <ArrowUpRight className="h-4 w-4" />
             </Button>
           </Link>

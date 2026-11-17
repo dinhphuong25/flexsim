@@ -103,11 +103,11 @@ export default async function StagesPage({ searchParams }: StagesPageProps) {
   return (
     <div className="space-y-6">
       <div className="border-b border-slate-200 pb-3">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
           <Layers className="h-5 w-5 text-teal-600" />
           Quản Lý Công Đoạn & Tồn Bán Thành Phẩm (WIP)
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-500 mt-1 leading-5">
           Theo dõi toàn bộ 27 công đoạn may (CD01–CD27), các trạm A/B song song, cấu hình ngưỡng tồn an toàn và hồ sơ kiểm kê toàn chuyền {auditedItems.length} vị trí sản xuất đối chiếu mô phỏng FlexSim.
         </p>
       </div>
