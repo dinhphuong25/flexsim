@@ -78,7 +78,7 @@ export function DashboardShell({
           aria-modal="true"
           aria-labelledby="welcome-title"
         >
-          <div className="relative w-full max-w-lg rounded-2xl border border-teal-100 bg-white p-6 shadow-2xl sm:p-8 animate-app-modal-content">
+          <div className="relative max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-2xl border border-teal-100 bg-white p-5 shadow-2xl sm:p-8 animate-app-modal-content">
             <button
               type="button"
               onClick={() => setIsWelcomeOpen(false)}

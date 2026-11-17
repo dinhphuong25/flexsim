@@ -39,6 +39,7 @@ import Link from 'next/link';
 import { FlexSimModelPreviewCard } from '@/components/dashboard/flexsim-model-preview-card';
 import { SimulationReplayScrubber } from '@/components/dashboard/simulation-replay-scrubber';
 import { WipDistributionChart } from '@/components/dashboard/wip-distribution-chart';
+import { AnimatedMetric } from '@/components/dashboard/animated-metric';
 
 interface DashboardPageProps {
   searchParams?: Promise<{ runId?: string }> | { runId?: string };
@@ -181,7 +182,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       {/* Mục 3: CẬP NHẬT DASHBOARD - 8 THẺ CHÍNH */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Thẻ 1: Thành phẩm thực tế / mục tiêu */}
-        <Card className="border-l-4 border-l-teal-600 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-teal-600 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -193,9 +194,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
               <span className="text-3xl font-black text-slate-900 font-mono tracking-tight">
-                {activeRun?.finishedCount !== null && activeRun?.finishedCount !== undefined
-                  ? activeRun.finishedCount.toLocaleString('vi-VN')
-                  : 'Chưa có dữ liệu'}
+                <AnimatedMetric
+                  value={activeRun?.finishedCount ?? null}
+                />
               </span>
               <span className="text-xs font-semibold text-slate-500 font-mono whitespace-nowrap">
                 / 5.500 cái
@@ -214,7 +215,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 2: Số lượng còn thiếu */}
-        <Card className="border-l-4 border-l-amber-500 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-amber-500 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -226,7 +227,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-3xl font-black text-amber-700 font-mono tracking-tight">
-                {acceptance.remaining !== null ? acceptance.remaining.toLocaleString('vi-VN') : 'Chưa có dữ liệu'}
+                <AnimatedMetric value={acceptance.remaining} />
               </span>
               {acceptance.remaining !== null && (
                 <span className="text-xs font-semibold text-amber-800 font-mono">sản phẩm</span>
@@ -241,7 +242,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 3: Tỷ lệ hoàn thành */}
-        <Card className="border-l-4 border-l-indigo-600 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-purple-600 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -252,10 +253,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-3xl font-black text-indigo-900 font-mono tracking-tight">
-                {acceptance.completionRate !== null
-                  ? `${acceptance.completionRate.toFixed(2).replace('.', ',')}%`
-                  : 'Chưa có dữ liệu'}
+              <span className="text-3xl font-black text-purple-900 font-mono tracking-tight">
+                <AnimatedMetric value={acceptance.completionRate} decimals={2} suffix="%" />
               </span>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-100">
@@ -266,7 +265,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 4: Thời gian mô phỏng */}
-        <Card className="border-l-4 border-l-slate-700 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-slate-700 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -289,7 +288,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 5: Nhân lực kế hoạch */}
-        <Card className="border-l-4 border-l-blue-600 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-blue-600 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -301,7 +300,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-3xl font-black text-blue-900 font-mono tracking-tight">
-                34
+                <AnimatedMetric value={34} />
               </span>
               <span className="text-xs font-semibold text-slate-500 font-mono">người</span>
             </div>
@@ -313,7 +312,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 6: Số vị trí còn tồn cuối kỳ */}
-        <Card className="border-l-4 border-l-emerald-600 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-emerald-600 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -342,7 +341,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 7: Trạng thái kiểm kê toàn chuyền */}
-        <Card className="border-l-4 border-l-purple-600 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-purple-600 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -367,7 +366,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </Card>
 
         {/* Thẻ 8: Thời điểm đồng bộ gần nhất */}
-        <Card className="border-l-4 border-l-slate-500 shadow-xs hover:shadow-sm transition-shadow">
+        <Card className="kpi-card border-l-4 border-l-slate-500 shadow-xs hover:shadow-sm transition-shadow">
           <CardContent className="pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
