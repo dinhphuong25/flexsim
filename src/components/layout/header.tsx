@@ -146,7 +146,10 @@ export function Header({
           {/* Mobile Brand Name */}
           <div className="flex items-center gap-1 md:hidden">
             <span className="font-black text-[13px] tracking-wider text-slate-900">NHÓM 2</span>
-            <Badge variant="outline" className="text-[9px] font-mono font-bold py-0 px-1 border-teal-400 text-teal-800 bg-teal-50">
+            <Badge
+              variant="outline"
+              className="shrink-0 whitespace-nowrap border-teal-400 bg-teal-50 px-1.5 py-0 text-[10px] font-mono font-bold text-teal-800"
+            >
               YSH1000218
             </Badge>
           </div>

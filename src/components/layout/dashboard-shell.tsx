@@ -71,7 +71,7 @@ export function DashboardShell({
         </main>
       </div>
 
-      {isWelcomeOpen && (
+      {pathname === '/' && isWelcomeOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-app-modal"
           role="dialog"

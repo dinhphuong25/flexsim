@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -1178,34 +1179,44 @@ export function WorkforceManager({
       )}
 
       {/* DRAWER / MODAL: XEM CHI TIẾT BẢN MÔ TẢ CÔNG VIỆC (YÊU CẦU 6, 7, 8) */}
-      {detailPosition && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+      {detailPosition &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          (
+        <div
+          className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-black/60 p-3 backdrop-blur-xs animate-fadeIn sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="worker-job-detail-title"
+        >
+          <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[calc(100dvh-3rem)] md:translate-x-[7.5rem] lg:translate-x-32">
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
-              <div className="flex items-center gap-2.5">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 bg-white p-4 sm:p-5">
+              <div className="flex min-w-0 items-start gap-2.5">
                 <span className="font-mono font-black text-base bg-teal-800 text-white px-2.5 py-1 rounded-lg">
                   {detailPosition.positionCode}
                 </span>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">
+                <div className="min-w-0">
+                  <h3 id="worker-job-detail-title" className="text-base font-bold text-slate-900 sm:text-lg">
                     Bản Mô Tả Công Việc — {detailPosition.displayName}
                   </h3>
-                  <p className="text-xs text-slate-500 font-mono">
+                  <p className="mt-1 text-xs text-slate-500 font-mono">
                     Công đoạn: {detailPosition.stageCode} — {detailPosition.stageName} • Trạm: {detailPosition.primaryStation}
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setDetailPosition(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Đóng bản mô tả công việc"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-5 text-xs">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 text-xs sm:p-6">
               {/* Proposal Banner */}
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 space-y-1">
                 <div className="font-bold flex items-center gap-1.5 text-xs">
@@ -1396,7 +1407,9 @@ export function WorkforceManager({
             </div>
           </div>
         </div>
-      )}
+          ),
+          document.body
+        )}
 
       {/* MODAL: CHỈNH SỬA PHÂN CÔNG (EDIT ASSIGNMENT DIALOG) */}
       {editingPosition && (
